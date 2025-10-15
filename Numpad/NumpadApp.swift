@@ -15,16 +15,31 @@ struct NumpadApp: App {
             QuantityType.self,
             Entry.self,
         ])
-        let modelConfiguration = ModelConfiguration(
+
+        // Try CloudKit first, fallback to local storage if unavailable
+        let cloudKitConfig = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
             cloudKitDatabase: .automatic
         )
 
+        let localConfig = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            cloudKitDatabase: .none
+        )
+
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            // Try with CloudKit first
+            return try ModelContainer(for: schema, configurations: [cloudKitConfig])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // Fallback to local storage
+            print("CloudKit unavailable, using local storage: \(error)")
+            do {
+                return try ModelContainer(for: schema, configurations: [localConfig])
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
         }
     }()
 
