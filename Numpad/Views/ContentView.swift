@@ -187,43 +187,15 @@ struct QuantityTypeRow: View {
     let modelContext: ModelContext
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Main card button to add entry
-            Button(action: onAddEntry) {
-                QuantityTypeCard(
-                    quantityType: quantityType,
-                    total: total,
-                    onTap: onAddEntry
-                )
-            }
-            .buttonStyle(PlainButtonStyle())
-
-            // Action buttons row
-            HStack(spacing: 0) {
-                NavigationLink {
-                    EntryHistoryView(quantityType: quantityType, modelContext: modelContext)
-                } label: {
-                    Label("History", systemImage: "list.bullet")
-                        .font(.subheadline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                }
-
-                Divider()
-                    .frame(height: 20)
-
-                NavigationLink {
-                    AnalyticsView(quantityType: quantityType, modelContext: modelContext)
-                } label: {
-                    Label("Analytics", systemImage: "chart.bar.fill")
-                        .font(.subheadline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                }
-            }
-            .foregroundColor(.blue)
-            .background(Color.secondary.opacity(0.1))
-            .cornerRadius(8)
+        NavigationLink {
+            AnalyticsView(quantityType: quantityType, modelContext: modelContext)
+        } label: {
+            QuantityTypeCard(
+                quantityType: quantityType,
+                total: total,
+                onPlusButtonTap: onAddEntry
+            )
         }
+        .buttonStyle(PlainButtonStyle())
     }
 }

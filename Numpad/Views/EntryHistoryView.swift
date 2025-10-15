@@ -36,15 +36,6 @@ struct EntryHistoryView: View {
         }
         .navigationTitle("History")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                NavigationLink {
-                    AnalyticsView(quantityType: quantityType, modelContext: modelContext)
-                } label: {
-                    Image(systemName: "chart.bar.fill")
-                }
-            }
-        }
         .sheet(isPresented: $showingEditSheet) {
             if let entry = editingEntry {
                 EditEntryView(entry: entry, modelContext: modelContext)

@@ -10,43 +10,43 @@ import SwiftUI
 struct QuantityTypeCard: View {
     let quantityType: QuantityType
     let total: Double
-    let onTap: () -> Void
+    let onPlusButtonTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Image(systemName: quantityType.icon)
-                        .font(.title2)
-                        .foregroundColor(Color(hex: quantityType.colorHex))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: quantityType.icon)
+                    .font(.title2)
+                    .foregroundColor(Color(hex: quantityType.colorHex))
 
-                    Spacer()
+                Spacer()
 
+                Button(action: onPlusButtonTap) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title3)
                         .foregroundColor(.blue)
                 }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(quantityType.name)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-
-                    Text(quantityType.valueFormat.format(total))
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundColor(.primary)
-
-                    Text("Total")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.secondary.opacity(0.1))
-            .cornerRadius(16)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(quantityType.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                Text(quantityType.valueFormat.format(total))
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+
+                Text("Total • Tap for details")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.1))
+        .cornerRadius(16)
     }
 }
 

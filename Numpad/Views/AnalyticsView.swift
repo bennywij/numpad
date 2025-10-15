@@ -76,6 +76,15 @@ struct AnalyticsView: View {
         }
         .navigationTitle("Analytics")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink {
+                    EntryHistoryView(quantityType: quantityType, modelContext: modelContext)
+                } label: {
+                    Label("History", systemImage: "list.bullet")
+                }
+            }
+        }
     }
 
     private var emptyStateView: some View {
