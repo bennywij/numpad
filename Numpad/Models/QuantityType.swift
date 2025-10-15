@@ -12,7 +12,7 @@ import SwiftData
 final class QuantityType {
     @Attribute(.unique) var id: UUID = UUID()
     var name: String = ""
-    var valueFormat: ValueFormat = .integer
+    var valueFormatRawValue: String = ValueFormat.integer.rawValue
     var icon: String = "number"  // SF Symbol name
     var colorHex: String = "#007AFF"
     var lastUsedAt: Date = Date()
@@ -21,6 +21,11 @@ final class QuantityType {
 
     @Relationship(deleteRule: .cascade, inverse: \Entry.quantityType)
     var entries: [Entry]?
+
+    var valueFormat: ValueFormat {
+        get { ValueFormat(rawValue: valueFormatRawValue) ?? .integer }
+        set { valueFormatRawValue = newValue.rawValue }
+    }
 
     init(
         id: UUID = UUID(),
@@ -34,7 +39,7 @@ final class QuantityType {
     ) {
         self.id = id
         self.name = name
-        self.valueFormat = valueFormat
+        self.valueFormatRawValue = valueFormat.rawValue
         self.icon = icon
         self.colorHex = colorHex
         self.lastUsedAt = lastUsedAt
