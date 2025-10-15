@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AddEntryView: View {
     @Environment(\.dismiss) private var dismiss

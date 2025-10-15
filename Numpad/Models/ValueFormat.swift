@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 enum ValueFormat: String, Codable, CaseIterable, Identifiable {
     case integer
