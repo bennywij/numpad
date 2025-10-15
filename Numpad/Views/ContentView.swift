@@ -12,18 +12,9 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \QuantityType.lastUsedAt, order: .reverse) private var quantityTypes: [QuantityType]
 
-    @StateObject private var quantityTypeViewModel: QuantityTypeViewModel
-    @StateObject private var analyticsViewModel: AnalyticsViewModel
-
     @State private var showingAddEntry = false
     @State private var showingAddQuantityType = false
     @State private var selectedQuantityType: QuantityType?
-
-    init() {
-        // This will be properly initialized in the view body using the environment
-        _quantityTypeViewModel = StateObject(wrappedValue: QuantityTypeViewModel(modelContext: ModelContext(ModelContainer(for: QuantityType.self))))
-        _analyticsViewModel = StateObject(wrappedValue: AnalyticsViewModel(modelContext: ModelContext(ModelContainer(for: QuantityType.self))))
-    }
 
     var body: some View {
         NavigationStack {
@@ -78,7 +69,7 @@ struct ContentView: View {
             .sheet(isPresented: $showingAddQuantityType) {
                 AddQuantityTypeView(modelContext: modelContext)
             }
-            .onAppear {
+            .task {
                 // Seed default quantity types if none exist
                 if quantityTypes.isEmpty {
                     let vm = QuantityTypeViewModel(modelContext: modelContext)
