@@ -12,9 +12,8 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \QuantityType.lastUsedAt, order: .reverse) private var quantityTypes: [QuantityType]
 
-    @State private var showingAddEntry = false
+    @State private var addEntryFor: QuantityType?
     @State private var showingAddQuantityType = false
-    @State private var selectedQuantityType: QuantityType?
 
     var body: some View {
         NavigationStack {
@@ -35,8 +34,7 @@ struct ContentView: View {
                                     quantityType: quantityType,
                                     total: calculateTotal(for: quantityType),
                                     onAddEntry: {
-                                        selectedQuantityType = quantityType
-                                        showingAddEntry = true
+                                        addEntryFor = quantityType
                                     },
                                     modelContext: modelContext
                                 )
@@ -63,10 +61,8 @@ struct ContentView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingAddEntry) {
-                if let quantityType = selectedQuantityType {
-                    AddEntryView(quantityType: quantityType, modelContext: modelContext)
-                }
+            .sheet(item: $addEntryFor) { quantityType in
+                AddEntryView(quantityType: quantityType, modelContext: modelContext)
             }
             .sheet(isPresented: $showingAddQuantityType) {
                 AddQuantityTypeView(modelContext: modelContext)
@@ -89,8 +85,7 @@ struct ContentView: View {
                 .padding(.horizontal)
 
             Button {
-                selectedQuantityType = quantityType
-                showingAddEntry = true
+                addEntryFor = quantityType
             } label: {
                 HStack {
                     Image(systemName: quantityType.icon)
