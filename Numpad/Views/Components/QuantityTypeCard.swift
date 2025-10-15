@@ -23,7 +23,7 @@ struct QuantityTypeCard: View {
 
                 Button(action: onPlusButtonTap) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.title3)
+                        .font(.title)
                         .foregroundColor(.blue)
                 }
                 .buttonStyle(PlainButtonStyle())
