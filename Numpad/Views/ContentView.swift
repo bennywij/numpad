@@ -31,20 +31,18 @@ struct ContentView: View {
                         // All quantity types
                         LazyVStack(spacing: 12) {
                             ForEach(quantityTypes) { quantityType in
-                                NavigationLink {
-                                    EntryHistoryView(quantityType: quantityType, modelContext: modelContext)
-                                } label: {
-                                    QuantityTypeCard(
-                                        quantityType: quantityType,
-                                        total: calculateTotal(for: quantityType),
-                                        onTap: {
-                                            selectedQuantityType = quantityType
-                                            showingAddEntry = true
-                                        }
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
+                                QuantityTypeRow(
+                                    quantityType: quantityType,
+                                    total: calculateTotal(for: quantityType),
+                                    onAddEntry: {
+                                        selectedQuantityType = quantityType
+                                        showingAddEntry = true
+                                    },
+                                    modelContext: modelContext
+                                )
                             }
+                            .onDelete(perform: deleteQuantityTypes)
+                            .onMove(perform: moveQuantityTypes)
                         }
                         .padding(.horizontal)
                     }
@@ -53,6 +51,10 @@ struct ContentView: View {
             }
             .navigationTitle("Numpad")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    EditButton()
+                }
+
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         showingAddQuantityType = true
@@ -155,5 +157,73 @@ struct ContentView: View {
     private func calculateTotal(for quantityType: QuantityType) -> Double {
         let vm = AnalyticsViewModel(modelContext: modelContext)
         return vm.calculateTotal(for: quantityType)
+    }
+
+    private func deleteQuantityTypes(at offsets: IndexSet) {
+        for index in offsets {
+            let quantityType = quantityTypes[index]
+            modelContext.delete(quantityType)
+        }
+        try? modelContext.save()
+    }
+
+    private func moveQuantityTypes(from source: IndexSet, to destination: Int) {
+        var updatedTypes = quantityTypes
+        updatedTypes.move(fromOffsets: source, toOffset: destination)
+
+        // Update sort orders
+        for (index, type) in updatedTypes.enumerated() {
+            type.sortOrder = index
+        }
+        try? modelContext.save()
+    }
+}
+
+// MARK: - Quantity Type Row with Actions
+struct QuantityTypeRow: View {
+    let quantityType: QuantityType
+    let total: Double
+    let onAddEntry: () -> Void
+    let modelContext: ModelContext
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Main card button to add entry
+            Button(action: onAddEntry) {
+                QuantityTypeCard(
+                    quantityType: quantityType,
+                    total: total,
+                    onTap: onAddEntry
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            // Action buttons row
+            HStack(spacing: 0) {
+                NavigationLink {
+                    EntryHistoryView(quantityType: quantityType, modelContext: modelContext)
+                } label: {
+                    Label("History", systemImage: "list.bullet")
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+
+                Divider()
+                    .frame(height: 20)
+
+                NavigationLink {
+                    AnalyticsView(quantityType: quantityType, modelContext: modelContext)
+                } label: {
+                    Label("Analytics", systemImage: "chart.bar.fill")
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+            }
+            .foregroundColor(.blue)
+            .background(Color.secondary.opacity(0.1))
+            .cornerRadius(8)
+        }
     }
 }
