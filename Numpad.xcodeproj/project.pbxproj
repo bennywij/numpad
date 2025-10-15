@@ -11,6 +11,7 @@
 		A10000003A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000004A /* ContentView.swift */; };
 		A10000005A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000006A /* Assets.xcassets */; };
 		A10000007A /* ValueFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000008A /* ValueFormat.swift */; };
+		A10000008B /* AggregationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000008C /* AggregationType.swift */; };
 		A10000009A /* QuantityType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000AA /* QuantityType.swift */; };
 		A1000000BA /* Entry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000CA /* Entry.swift */; };
 		A1000000DA /* EntryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000EA /* EntryViewModel.swift */; };
@@ -21,6 +22,7 @@
 		A10000017A /* QuantityTypeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000018A /* QuantityTypeCard.swift */; };
 		A10000019A /* AddEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001AA /* AddEntryView.swift */; };
 		A1000001BA /* AddQuantityTypeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001CA /* AddQuantityTypeView.swift */; };
+		A1000001BB /* EditQuantityTypeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001CB /* EditQuantityTypeView.swift */; };
 		A1000001DA /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000001EA /* AnalyticsView.swift */; };
 		A1000001FA /* EntryHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020A /* EntryHistoryView.swift */; };
 		A10000021A /* LogEntryIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000022A /* LogEntryIntent.swift */; };
@@ -33,6 +35,7 @@
 		A10000004A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A10000006A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A10000008A /* ValueFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValueFormat.swift; sourceTree = "<group>"; };
+		A10000008C /* AggregationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AggregationType.swift; sourceTree = "<group>"; };
 		A1000000AA /* QuantityType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantityType.swift; sourceTree = "<group>"; };
 		A1000000CA /* Entry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entry.swift; sourceTree = "<group>"; };
 		A1000000EA /* EntryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryViewModel.swift; sourceTree = "<group>"; };
@@ -43,6 +46,7 @@
 		A10000018A /* QuantityTypeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantityTypeCard.swift; sourceTree = "<group>"; };
 		A1000001AA /* AddEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEntryView.swift; sourceTree = "<group>"; };
 		A1000001CA /* AddQuantityTypeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddQuantityTypeView.swift; sourceTree = "<group>"; };
+		A1000001CB /* EditQuantityTypeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditQuantityTypeView.swift; sourceTree = "<group>"; };
 		A1000001EA /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
 		A10000020A /* EntryHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryHistoryView.swift; sourceTree = "<group>"; };
 		A10000022A /* LogEntryIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEntryIntent.swift; sourceTree = "<group>"; };
@@ -87,6 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000008A /* ValueFormat.swift */,
+				A10000008C /* AggregationType.swift */,
 				A1000000AA /* QuantityType.swift */,
 				A1000000CA /* Entry.swift */,
 			);
@@ -109,6 +114,7 @@
 				A10000004A /* ContentView.swift */,
 				A1000001AA /* AddEntryView.swift */,
 				A1000001CA /* AddQuantityTypeView.swift */,
+				A1000001CB /* EditQuantityTypeView.swift */,
 				A1000001EA /* AnalyticsView.swift */,
 				A10000020A /* EntryHistoryView.swift */,
 				A1000002EA /* Components */,
@@ -206,6 +212,7 @@
 				A10000001A /* NumpadApp.swift in Sources */,
 				A10000003A /* ContentView.swift in Sources */,
 				A10000007A /* ValueFormat.swift in Sources */,
+				A10000008B /* AggregationType.swift in Sources */,
 				A10000009A /* QuantityType.swift in Sources */,
 				A1000000BA /* Entry.swift in Sources */,
 				A1000000DA /* EntryViewModel.swift in Sources */,
@@ -216,6 +223,7 @@
 				A10000017A /* QuantityTypeCard.swift in Sources */,
 				A10000019A /* AddEntryView.swift in Sources */,
 				A1000001BA /* AddQuantityTypeView.swift in Sources */,
+				A1000001BB /* EditQuantityTypeView.swift in Sources */,
 				A1000001DA /* AnalyticsView.swift in Sources */,
 				A1000001FA /* EntryHistoryView.swift in Sources */,
 				A10000021A /* LogEntryIntent.swift in Sources */,

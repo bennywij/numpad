@@ -19,12 +19,14 @@ class QuantityTypeViewModel: ObservableObject {
     func createQuantityType(
         name: String,
         valueFormat: ValueFormat,
+        aggregationType: AggregationType = .sum,
         icon: String = "number",
         colorHex: String = "#007AFF"
     ) -> QuantityType {
         let quantityType = QuantityType(
             name: name,
             valueFormat: valueFormat,
+            aggregationType: aggregationType,
             icon: icon,
             colorHex: colorHex,
             sortOrder: fetchAllQuantityTypes().count

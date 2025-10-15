@@ -46,7 +46,8 @@ class AnalyticsViewModel: ObservableObject {
 
     func calculateTotal(for quantityType: QuantityType) -> Double {
         guard let entries = quantityType.entries else { return 0 }
-        return entries.reduce(0) { $0 + $1.value }
+        let values = entries.map { $0.value }
+        return quantityType.aggregationType.aggregate(values)
     }
 
     func calculateGroupedTotals(
@@ -56,7 +57,8 @@ class AnalyticsViewModel: ObservableObject {
         guard let entries = quantityType.entries else { return [] }
 
         if period == .all {
-            let total = entries.reduce(0) { $0 + $1.value }
+            let values = entries.map { $0.value }
+            let total = quantityType.aggregationType.aggregate(values)
             return [GroupedTotal(
                 periodLabel: "All Time",
                 total: total,
@@ -66,22 +68,20 @@ class AnalyticsViewModel: ObservableObject {
         }
 
         let calendar = Calendar.current
-        var grouped: [Date: (total: Double, count: Int)] = [:]
+        var grouped: [Date: [Double]] = [:]
 
         for entry in entries {
             let periodStart = startOfPeriod(for: entry.timestamp, period: period, calendar: calendar)
-            let existing = grouped[periodStart] ?? (total: 0, count: 0)
-            grouped[periodStart] = (
-                total: existing.total + entry.value,
-                count: existing.count + 1
-            )
+            var values = grouped[periodStart] ?? []
+            values.append(entry.value)
+            grouped[periodStart] = values
         }
 
-        return grouped.map { (date, data) in
+        return grouped.map { (date, values) in
             GroupedTotal(
                 periodLabel: formatPeriodLabel(date, period: period),
-                total: data.total,
-                count: data.count,
+                total: quantityType.aggregationType.aggregate(values),
+                count: values.count,
                 startDate: date
             )
         }.sorted { $0.startDate > $1.startDate }

@@ -37,7 +37,7 @@ struct AnalyticsView: View {
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .foregroundColor(.primary)
 
-                    Text("Total")
+                    Text(quantityType.aggregationType.displayName)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

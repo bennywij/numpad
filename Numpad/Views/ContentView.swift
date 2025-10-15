@@ -10,31 +10,44 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \QuantityType.lastUsedAt, order: .reverse) private var quantityTypes: [QuantityType]
+    @Query(sort: \QuantityType.lastUsedAt, order: .reverse) private var allQuantityTypes: [QuantityType]
 
     @State private var addEntryFor: QuantityType?
     @State private var showingAddQuantityType = false
+    @State private var editQuantityType: QuantityType?
+
+    // Filter out hidden quantity types for main display
+    private var visibleQuantityTypes: [QuantityType] {
+        allQuantityTypes.filter { !$0.isHidden }
+    }
+
+    private var hiddenQuantityTypes: [QuantityType] {
+        allQuantityTypes.filter { $0.isHidden }
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    if quantityTypes.isEmpty {
+                    if visibleQuantityTypes.isEmpty {
                         emptyStateView
                     } else {
                         // Quick add to most recent
-                        if let mostRecent = quantityTypes.first {
+                        if let mostRecent = visibleQuantityTypes.first {
                             quickAddSection(mostRecent)
                         }
 
                         // All quantity types
                         LazyVStack(spacing: 12) {
-                            ForEach(quantityTypes) { quantityType in
+                            ForEach(visibleQuantityTypes) { quantityType in
                                 QuantityTypeRow(
                                     quantityType: quantityType,
                                     total: calculateTotal(for: quantityType),
                                     onAddEntry: {
                                         addEntryFor = quantityType
+                                    },
+                                    onEdit: {
+                                        editQuantityType = quantityType
                                     },
                                     modelContext: modelContext
                                 )
@@ -43,16 +56,17 @@ struct ContentView: View {
                             .onMove(perform: moveQuantityTypes)
                         }
                         .padding(.horizontal)
+
+                        // Hidden quantity types section
+                        if !hiddenQuantityTypes.isEmpty {
+                            hiddenQuantitiesSection
+                        }
                     }
                 }
                 .padding(.vertical)
             }
             .navigationTitle("Numpad")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    EditButton()
-                }
-
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         showingAddQuantityType = true
@@ -67,9 +81,12 @@ struct ContentView: View {
             .sheet(isPresented: $showingAddQuantityType) {
                 AddQuantityTypeView(modelContext: modelContext)
             }
+            .sheet(item: $editQuantityType) { quantityType in
+                EditQuantityTypeView(quantityType: quantityType, modelContext: modelContext)
+            }
             .task {
                 // Seed default quantity types if none exist
-                if quantityTypes.isEmpty {
+                if allQuantityTypes.isEmpty {
                     let vm = QuantityTypeViewModel(modelContext: modelContext)
                     vm.seedDefaultQuantityTypes()
                 }
@@ -119,6 +136,50 @@ struct ContentView: View {
         }
     }
 
+    private var hiddenQuantitiesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Hidden")
+                .font(.headline)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+
+            LazyVStack(spacing: 12) {
+                ForEach(hiddenQuantityTypes) { quantityType in
+                    Button {
+                        editQuantityType = quantityType
+                    } label: {
+                        HStack {
+                            Image(systemName: quantityType.icon)
+                                .font(.title2)
+                                .foregroundColor(Color(hex: quantityType.colorHex))
+
+                            VStack(alignment: .leading) {
+                                Text(quantityType.name)
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+
+                                Text("Hidden • Tap to edit")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(Color.secondary.opacity(0.1))
+                        .cornerRadius(16)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            .padding(.horizontal)
+        }
+        .padding(.top, 20)
+    }
+
     private var emptyStateView: some View {
         VStack(spacing: 20) {
             Image(systemName: "number.square.fill")
@@ -156,14 +217,14 @@ struct ContentView: View {
 
     private func deleteQuantityTypes(at offsets: IndexSet) {
         for index in offsets {
-            let quantityType = quantityTypes[index]
+            let quantityType = visibleQuantityTypes[index]
             modelContext.delete(quantityType)
         }
         try? modelContext.save()
     }
 
     private func moveQuantityTypes(from source: IndexSet, to destination: Int) {
-        var updatedTypes = quantityTypes
+        var updatedTypes = visibleQuantityTypes
         updatedTypes.move(fromOffsets: source, toOffset: destination)
 
         // Update sort orders
@@ -179,6 +240,7 @@ struct QuantityTypeRow: View {
     let quantityType: QuantityType
     let total: Double
     let onAddEntry: () -> Void
+    let onEdit: () -> Void
     let modelContext: ModelContext
 
     var body: some View {
@@ -192,5 +254,12 @@ struct QuantityTypeRow: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .contextMenu {
+            Button {
+                onEdit()
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+        }
     }
 }

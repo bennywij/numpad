@@ -1,5 +1,5 @@
 //
-//  AddQuantityTypeView.swift
+//  EditQuantityTypeView.swift
 //  Numpad
 //
 //  Created on 2025-10-15.
@@ -8,20 +8,30 @@
 import SwiftUI
 import SwiftData
 
-struct AddQuantityTypeView: View {
+struct EditQuantityTypeView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
 
-    @State private var name: String = ""
-    @State private var selectedFormat: ValueFormat = .integer
-    @State private var selectedAggregationType: AggregationType = .sum
-    @State private var selectedIcon: String = "number"
-    @State private var selectedColorHex: String = "#007AFF"
+    let quantityType: QuantityType
+    let modelContext: ModelContext
 
-    @StateObject private var viewModel: QuantityTypeViewModel
+    @State private var name: String
+    @State private var selectedFormat: ValueFormat
+    @State private var selectedAggregationType: AggregationType
+    @State private var selectedIcon: String
+    @State private var selectedColorHex: String
+    @State private var isHidden: Bool
 
-    init(modelContext: ModelContext) {
-        self._viewModel = StateObject(wrappedValue: QuantityTypeViewModel(modelContext: modelContext))
+    init(quantityType: QuantityType, modelContext: ModelContext) {
+        self.quantityType = quantityType
+        self.modelContext = modelContext
+
+        // Initialize state from the existing quantity type
+        _name = State(initialValue: quantityType.name)
+        _selectedFormat = State(initialValue: quantityType.valueFormat)
+        _selectedAggregationType = State(initialValue: quantityType.aggregationType)
+        _selectedIcon = State(initialValue: quantityType.icon)
+        _selectedColorHex = State(initialValue: quantityType.colorHex)
+        _isHidden = State(initialValue: quantityType.isHidden)
     }
 
     let iconOptions = [
@@ -88,6 +98,10 @@ struct AddQuantityTypeView: View {
                     }
                 }
 
+                Section("Visibility") {
+                    Toggle("Hide from main screen", isOn: $isHidden)
+                }
+
                 Section("Preview") {
                     HStack {
                         Image(systemName: selectedIcon)
@@ -106,7 +120,7 @@ struct AddQuantityTypeView: View {
                     .padding()
                 }
             }
-            .navigationTitle("New Quantity Type")
+            .navigationTitle("Edit Quantity Type")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -116,14 +130,8 @@ struct AddQuantityTypeView: View {
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Create") {
-                        _ = viewModel.createQuantityType(
-                            name: name,
-                            valueFormat: selectedFormat,
-                            aggregationType: selectedAggregationType,
-                            icon: selectedIcon,
-                            colorHex: selectedColorHex
-                        )
+                    Button("Save") {
+                        saveChanges()
                         dismiss()
                     }
                     .disabled(name.isEmpty)
@@ -131,5 +139,16 @@ struct AddQuantityTypeView: View {
                 }
             }
         }
+    }
+
+    private func saveChanges() {
+        quantityType.name = name
+        quantityType.valueFormat = selectedFormat
+        quantityType.aggregationType = selectedAggregationType
+        quantityType.icon = selectedIcon
+        quantityType.colorHex = selectedColorHex
+        quantityType.isHidden = isHidden
+
+        try? modelContext.save()
     }
 }
