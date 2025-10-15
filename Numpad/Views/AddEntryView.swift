@@ -16,6 +16,8 @@ struct AddEntryView: View {
 
     @State private var value: Double = 0
     @State private var notes: String = ""
+    @State private var timestamp: Date = Date()
+    @State private var isCustomTimestamp: Bool = false
     @StateObject private var viewModel: EntryViewModel
 
     init(quantityType: QuantityType, modelContext: ModelContext) {
@@ -46,6 +48,34 @@ struct AddEntryView: View {
                     )
                     .padding(.horizontal)
 
+                    // Timestamp
+                    VStack(alignment: .leading, spacing: 8) {
+                        Toggle(isOn: $isCustomTimestamp) {
+                            Text("Backdate entry")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+
+                        if isCustomTimestamp {
+                            DatePicker(
+                                "Date & Time",
+                                selection: $timestamp,
+                                displayedComponents: [.date, .hourAndMinute]
+                            )
+                            .datePickerStyle(.compact)
+                        } else {
+                            Text("Now: \(timestamp, style: .date) at \(timestamp, style: .time)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .onChange(of: isCustomTimestamp) { _, newValue in
+                        if !newValue {
+                            timestamp = Date()
+                        }
+                    }
+
                     // Notes
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Notes (optional)")
@@ -75,6 +105,7 @@ struct AddEntryView: View {
                         viewModel.addEntry(
                             value: value,
                             to: quantityType,
+                            timestamp: timestamp,
                             notes: notes
                         )
                         dismiss()

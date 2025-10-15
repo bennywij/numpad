@@ -16,10 +16,10 @@ class EntryViewModel: ObservableObject {
         self.modelContext = modelContext
     }
 
-    func addEntry(value: Double, to quantityType: QuantityType, notes: String = "") {
+    func addEntry(value: Double, to quantityType: QuantityType, timestamp: Date = Date(), notes: String = "") {
         let entry = Entry(
             value: value,
-            timestamp: Date(),
+            timestamp: timestamp,
             notes: notes,
             quantityType: quantityType
         )
