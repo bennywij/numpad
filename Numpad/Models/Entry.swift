@@ -10,10 +10,10 @@ import SwiftData
 
 @Model
 final class Entry {
-    var id: UUID
-    var value: Double
-    var timestamp: Date
-    var notes: String
+    @Attribute(.unique) var id: UUID = UUID()
+    var value: Double = 0
+    var timestamp: Date = Date()
+    var notes: String = ""
     var quantityType: QuantityType?
 
     init(

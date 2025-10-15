@@ -10,14 +10,14 @@ import SwiftData
 
 @Model
 final class QuantityType {
-    var id: UUID
-    var name: String
-    var valueFormat: ValueFormat
-    var icon: String  // SF Symbol name
-    var colorHex: String
-    var lastUsedAt: Date
-    var createdAt: Date
-    var sortOrder: Int
+    @Attribute(.unique) var id: UUID = UUID()
+    var name: String = ""
+    var valueFormat: ValueFormat = .integer
+    var icon: String = "number"  // SF Symbol name
+    var colorHex: String = "#007AFF"
+    var lastUsedAt: Date = Date()
+    var createdAt: Date = Date()
+    var sortOrder: Int = 0
 
     @Relationship(deleteRule: .cascade, inverse: \Entry.quantityType)
     var entries: [Entry]?
