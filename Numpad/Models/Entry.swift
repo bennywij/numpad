@@ -10,7 +10,7 @@ import SwiftData
 
 @Model
 final class Entry {
-    @Attribute(.unique) var id: UUID = UUID()
+    var id: UUID = UUID()
     var value: Double = 0
     var timestamp: Date = Date()
     var notes: String = ""

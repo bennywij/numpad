@@ -10,7 +10,7 @@ import SwiftData
 
 @Model
 final class QuantityType {
-    @Attribute(.unique) var id: UUID = UUID()
+    var id: UUID = UUID()
     var name: String = ""
     var valueFormatRawValue: String = ValueFormat.integer.rawValue
     var icon: String = "number"  // SF Symbol name
