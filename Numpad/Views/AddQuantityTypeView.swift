@@ -110,7 +110,7 @@ struct AddQuantityTypeView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Create") {
-                        viewModel.createQuantityType(
+                        _ = viewModel.createQuantityType(
                             name: name,
                             valueFormat: selectedFormat,
                             icon: selectedIcon,
