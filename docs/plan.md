@@ -763,6 +763,21 @@ All 6 critical issues identified by Gemini code review were fixed:
 - ✅ Widget displays compound quantities correctly
 - ✅ CloudKit sync works with new fields
 
+### UX Polish (Post-Launch Fixes)
+After initial implementation, two UX issues were identified and fixed:
+
+1. **Division by zero error shown prematurely** ✅
+   - Problem: "Error: Divide by zero" displayed immediately on screen load
+   - Fix: Added `hasUserInput` state tracking to only show errors after user interaction
+   - Result: Clean initial state showing "0.00" until user enters values
+
+2. **Format picker disappeared for compound quantities** ✅
+   - Problem: Format selection was hidden when compound toggle enabled
+   - Fix: Restored format picker - it controls display format of calculated result
+   - Result: Users can choose Integer/Decimal/Duration for result display (e.g., MPG as decimal)
+
+**Commit**: `0693909` - Fix compound input UX issues
+
 ### Future Enhancements (Deferred)
 - [ ] Persist compound input state across navigation
 - [ ] Add validation for time range (enforce end > start)
