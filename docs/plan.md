@@ -473,3 +473,66 @@ Applied to both `calculateTotal()` and `calculateGroupedTotals()`.
 - `Numpad/Views/Components/QuantityTypeCard.swift` - Re-added Color+Hex extension (temp fix)
 
 ### Build Status: ✅ `BUILD SUCCEEDED`
+
+---
+
+## 🐛 Day 5c - Additional Critical Fixes
+
+After the Day 5b fixes, several more issues were discovered during testing:
+
+### Issue #1: Observable Pattern Performance
+**Problem**: Creating new `AnalyticsViewModel` instance for every card on every render.
+
+**Root Cause**: `calculateTotal(for:)` was instantiating `AnalyticsViewModel(modelContext:)` repeatedly.
+
+**Fix**: Implemented SwiftData's `@Query` observable pattern:
+- Added `@Query private var allEntries: [NumpadEntry]`
+- Calculate totals directly from queried entries (in-memory filtering)
+- Single database query instead of N queries per render
+- Automatic UI updates when data changes
+
+**File**: `Numpad/Views/ContentView.swift:36, 256-260`
+
+### Issue #2: Duplicate Hidden Items Rendering
+**Problem**: Hidden quantities (Calories, Steps, Water) appeared twice in the hidden section.
+
+**Root Cause**: SwiftUI's `ForEach(hiddenQuantityTypes)` was creating duplicate views, possibly due to identity resolution issues.
+
+**Fix**: Used explicit enumeration with ID:
+```swift
+ForEach(Array(hiddenQuantityTypes.enumerated()), id: \.element.id) { index, quantityType in
+```
+
+**File**: `Numpad/Views/ContentView.swift:185`
+
+### Issue #3: Inconsistent Spacing Between Cards
+**Problem**: Large gap between card 1 and card 2, but normal spacing between cards 2 and 3.
+
+**Root Cause**: `LazyVStack` with `.onDelete/.onMove` modifiers was adding extra spacing to first item.
+
+**Fix**:
+- Changed from `LazyVStack` to regular `VStack(spacing: 16)`
+- Added `Divider()` with 24pt padding between visible and hidden sections
+- All cards now have consistent 16pt spacing
+
+**File**: `Numpad/Views/ContentView.swift:64-91`
+
+### Issue #4: Missing Accessibility Labels
+**Problem**: Hidden section items had no accessibility labels.
+
+**Fix**: Added proper labels:
+- Label: `"Hidden: [quantity name]"`
+- Hint: `"Double tap to edit and unhide"`
+
+**File**: `Numpad/Views/ContentView.swift:213-214`
+
+### Files Changed (Day 5c)
+- `Numpad/Views/ContentView.swift` - Observable pattern, spacing fixes, accessibility
+- `Numpad/ViewModels/AnalyticsViewModel.swift` - Made modelContext optional for flexibility
+
+### Build Status: ✅ `BUILD SUCCEEDED`
+
+### Commits
+- `7e18062` - Fix layout issues: duplicate items and stale totals
+- `f885500` - Implement observable pattern and fix layout spacing issues
+- `90d799f` - Fix duplicate hidden items and spacing issues between cards
