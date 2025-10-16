@@ -51,37 +51,42 @@ struct ContentView: View {
                     emptyStateView
                         .padding(.top, 60)
                 } else {
-                    LazyVStack(spacing: 16) {
-                        // Quick add section - shows most recently used quantity
+                    VStack(spacing: 0) {
+                        // Quick add section - shows most recently used visible quantity
                         if let mostRecent = mostRecentQuantity {
                             quickAddCard(mostRecent)
                                 .padding(.top, 20)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 16)
                         }
 
                         // All quantity type cards (sorted by manual sort order)
-                        ForEach(visibleQuantityTypes) { quantityType in
-                            QuantityTypeRow(
-                                quantityType: quantityType,
-                                total: calculateTotal(for: quantityType),
-                                onAddEntry: {
-                                    addEntryFor = quantityType
-                                },
-                                onEdit: {
-                                    editQuantityType = quantityType
-                                },
-                                modelContext: modelContext
-                            )
+                        LazyVStack(spacing: 16) {
+                            ForEach(visibleQuantityTypes) { quantityType in
+                                QuantityTypeRow(
+                                    quantityType: quantityType,
+                                    total: calculateTotal(for: quantityType, in: allEntries),
+                                    onAddEntry: {
+                                        addEntryFor = quantityType
+                                    },
+                                    onEdit: {
+                                        editQuantityType = quantityType
+                                    },
+                                    modelContext: modelContext
+                                )
+                            }
+                            .onDelete(perform: deleteQuantityTypes)
+                            .onMove(perform: moveQuantityTypes)
                         }
-                        .onDelete(perform: deleteQuantityTypes)
-                        .onMove(perform: moveQuantityTypes)
+                        .padding(.horizontal, 16)
 
                         // Hidden quantity types section
                         if !hiddenQuantityTypes.isEmpty {
                             hiddenQuantitiesSection
-                                .padding(.top, 8)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 32)
                         }
                     }
-                    .padding(.horizontal, 16)
                     .padding(.bottom, 20)
                 }
             }
@@ -240,10 +245,11 @@ struct ContentView: View {
     }
 
     // MARK: - Helper Methods
-    private func calculateTotal(for quantityType: QuantityType) -> Double {
-        // Filter entries for this quantity type
-        let entries = allEntries.filter { $0.quantityType?.id == quantityType.id }
-        let values = entries.map { $0.value }
+    /// Calculate total for a quantity type from the provided entries
+    /// This approach uses @Query to reactively update when entries change
+    private func calculateTotal(for quantityType: QuantityType, in entries: [NumpadEntry]) -> Double {
+        let filteredEntries = entries.filter { $0.quantityType?.id == quantityType.id }
+        let values = filteredEntries.map { $0.value }
         return quantityType.aggregationType.aggregate(values)
     }
 

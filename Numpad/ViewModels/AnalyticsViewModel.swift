@@ -38,13 +38,20 @@ struct GroupedTotal: Identifiable {
 
 @MainActor
 class AnalyticsViewModel: ObservableObject {
-    private let modelContext: ModelContext
+    private var modelContext: ModelContext?
 
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext?) {
         self.modelContext = modelContext
     }
 
+    /// Set or update the modelContext (needed for @StateObject initialization workaround)
+    func setModelContext(_ context: ModelContext) {
+        self.modelContext = context
+    }
+
     func calculateTotal(for quantityType: QuantityType) -> Double {
+        guard let modelContext = modelContext else { return 0 }
+
         // CRITICAL FIX: Don't rely on relationship loading - fetch entries explicitly
         let quantityTypeID = quantityType.id
         let descriptor = FetchDescriptor<NumpadEntry>(
@@ -65,6 +72,8 @@ class AnalyticsViewModel: ObservableObject {
         for quantityType: QuantityType,
         groupedBy period: GroupingPeriod
     ) -> [GroupedTotal] {
+        guard let modelContext = modelContext else { return [] }
+
         // CRITICAL FIX: Fetch entries explicitly instead of relying on relationship
         let quantityTypeID = quantityType.id
         let descriptor = FetchDescriptor<NumpadEntry>(
