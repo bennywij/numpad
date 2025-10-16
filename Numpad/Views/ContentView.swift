@@ -23,7 +23,22 @@ struct ContentView: View {
         sort: \QuantityType.name
     ) private var hiddenQuantityTypes: [QuantityType]
 
+    // Query for most recently used (for Quick Add)
+    @Query(
+        filter: #Predicate<QuantityType> { !$0.isHidden },
+        sort: \QuantityType.lastUsedAt,
+        order: .reverse
+    ) private var recentQuantityTypes: [QuantityType]
+
     @Query private var allQuantityTypes: [QuantityType]
+
+    // Query ALL entries to trigger view updates when entries change
+    @Query private var allEntries: [NumpadEntry]
+
+    // Most recently used quantity (for Quick Add)
+    private var mostRecentQuantity: QuantityType? {
+        recentQuantityTypes.first
+    }
 
     @State private var addEntryFor: QuantityType?
     @State private var showingAddQuantityType = false
@@ -32,42 +47,43 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    if visibleQuantityTypes.isEmpty {
-                        emptyStateView
-                    } else {
-                        // Quick add to most recent
-                        if let mostRecent = visibleQuantityTypes.first {
-                            quickAddSection(mostRecent)
+                if visibleQuantityTypes.isEmpty {
+                    emptyStateView
+                        .padding(.top, 60)
+                } else {
+                    LazyVStack(spacing: 16) {
+                        // Quick add section - shows most recently used quantity
+                        if let mostRecent = mostRecentQuantity {
+                            quickAddCard(mostRecent)
+                                .padding(.top, 20)
                         }
 
-                        // All quantity types
-                        LazyVStack(spacing: 12) {
-                            ForEach(visibleQuantityTypes) { quantityType in
-                                QuantityTypeRow(
-                                    quantityType: quantityType,
-                                    total: calculateTotal(for: quantityType),
-                                    onAddEntry: {
-                                        addEntryFor = quantityType
-                                    },
-                                    onEdit: {
-                                        editQuantityType = quantityType
-                                    },
-                                    modelContext: modelContext
-                                )
-                            }
-                            .onDelete(perform: deleteQuantityTypes)
-                            .onMove(perform: moveQuantityTypes)
+                        // All quantity type cards (sorted by manual sort order)
+                        ForEach(visibleQuantityTypes) { quantityType in
+                            QuantityTypeRow(
+                                quantityType: quantityType,
+                                total: calculateTotal(for: quantityType),
+                                onAddEntry: {
+                                    addEntryFor = quantityType
+                                },
+                                onEdit: {
+                                    editQuantityType = quantityType
+                                },
+                                modelContext: modelContext
+                            )
                         }
-                        .padding(.horizontal)
+                        .onDelete(perform: deleteQuantityTypes)
+                        .onMove(perform: moveQuantityTypes)
 
                         // Hidden quantity types section
                         if !hiddenQuantityTypes.isEmpty {
                             hiddenQuantitiesSection
+                                .padding(.top, 8)
                         }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 20)
                 }
-                .padding(.vertical)
             }
             .navigationTitle("Numpad")
             .toolbar {
@@ -100,96 +116,97 @@ struct ContentView: View {
         }
     }
 
-    private func quickAddSection(_ quantityType: QuantityType) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Quick Add")
-                .font(.headline)
+    // MARK: - Quick Add Card
+    private func quickAddCard(_ quantityType: QuantityType) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("QUICK ADD")
+                .font(.caption)
+                .fontWeight(.semibold)
                 .foregroundColor(.secondary)
-                .padding(.horizontal)
+                .tracking(0.5)
 
             Button {
                 addEntryFor = quantityType
             } label: {
-                HStack {
+                HStack(spacing: 12) {
                     Image(systemName: quantityType.icon)
-                        .font(.title)
+                        .font(.title2)
                         .foregroundColor(Color(hex: quantityType.colorHex))
                         .accessibilityHidden(true)
 
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(quantityType.name)
-                            .font(.title3)
-                            .fontWeight(.semibold)
+                            .font(.headline)
                             .foregroundColor(.primary)
 
                         Text("Tap to log")
-                            .font(.subheadline)
+                            .font(.caption)
                             .foregroundColor(.secondary)
                     }
 
                     Spacer()
 
                     Image(systemName: "chevron.right")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                         .accessibilityHidden(true)
                 }
-                .padding()
+                .padding(16)
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 12)
                         .fill(Color(hex: quantityType.colorHex).opacity(0.1))
-                        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
                 )
             }
-            .padding(.horizontal)
+            .buttonStyle(PlainButtonStyle())
             .accessibilityLabel("Quick add to \(quantityType.name)")
             .accessibilityHint("Double tap to add a new entry")
         }
     }
 
+    // MARK: - Hidden Quantities Section
     private var hiddenQuantitiesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Hidden")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("HIDDEN")
+                .font(.caption)
+                .fontWeight(.semibold)
                 .foregroundColor(.secondary)
-                .padding(.horizontal)
+                .tracking(0.5)
 
-            LazyVStack(spacing: 12) {
+            VStack(spacing: 8) {
                 ForEach(hiddenQuantityTypes) { quantityType in
                     Button {
                         editQuantityType = quantityType
                     } label: {
-                        HStack {
+                        HStack(spacing: 12) {
                             Image(systemName: quantityType.icon)
-                                .font(.title2)
+                                .font(.headline)
                                 .foregroundColor(Color(hex: quantityType.colorHex))
 
-                            VStack(alignment: .leading) {
-                                Text(quantityType.name)
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-
-                                Text("Hidden • Tap to edit")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
+                            Text(quantityType.name)
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
 
                             Spacer()
 
+                            Text("Tap to edit")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+
                             Image(systemName: "chevron.right")
+                                .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        .padding()
-                        .background(Color.secondary.opacity(0.1))
-                        .cornerRadius(16)
+                        .padding(12)
+                        .background(Color.secondary.opacity(0.08))
+                        .cornerRadius(10)
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
             }
-            .padding(.horizontal)
         }
-        .padding(.top, 20)
     }
 
+    // MARK: - Empty State
     private var emptyStateView: some View {
         VStack(spacing: 20) {
             Image(systemName: "number.square.fill")
@@ -222,9 +239,12 @@ struct ContentView: View {
         .padding()
     }
 
+    // MARK: - Helper Methods
     private func calculateTotal(for quantityType: QuantityType) -> Double {
-        let vm = AnalyticsViewModel(modelContext: modelContext)
-        return vm.calculateTotal(for: quantityType)
+        // Filter entries for this quantity type
+        let entries = allEntries.filter { $0.quantityType?.id == quantityType.id }
+        let values = entries.map { $0.value }
+        return quantityType.aggregationType.aggregate(values)
     }
 
     private func deleteQuantityTypes(at offsets: IndexSet) {

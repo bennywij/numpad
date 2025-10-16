@@ -13,44 +13,46 @@ struct QuantityTypeCard: View {
     let onPlusButtonTap: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: quantityType.icon)
-                    .font(.title2)
-                    .foregroundColor(Color(hex: quantityType.colorHex))
-                    .accessibilityLabel("\(quantityType.name) icon")
+        HStack(alignment: .top, spacing: 16) {
+            // Left: Icon and info
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
+                    Image(systemName: quantityType.icon)
+                        .font(.title3)
+                        .foregroundColor(Color(hex: quantityType.colorHex))
+                        .accessibilityLabel("\(quantityType.name) icon")
 
-                Spacer()
-
-                Button(action: onPlusButtonTap) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title)
-                        .foregroundColor(.blue)
+                    Text(quantityType.name)
+                        .font(.headline)
+                        .foregroundColor(.primary)
                 }
-                .buttonStyle(PlainButtonStyle())
-                .accessibilityLabel("Add entry to \(quantityType.name)")
-                .accessibilityHint("Double tap to log a new entry")
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(quantityType.name)
-                    .font(.headline)
-                    .foregroundColor(.primary)
 
                 Text(quantityType.valueFormat.format(total))
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
                     .accessibilityLabel("Total: \(quantityType.valueFormat.format(total))")
 
-                Text("Total • Tap for details")
+                Text("Tap for details")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+
+            Spacer()
+
+            // Right: Plus button
+            Button(action: onPlusButtonTap) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(.blue)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .accessibilityLabel("Add entry to \(quantityType.name)")
+            .accessibilityHint("Double tap to log a new entry")
         }
-        .padding()
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.secondary.opacity(0.1))
-        .cornerRadius(16)
+        .background(Color.secondary.opacity(0.08))
+        .cornerRadius(12)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(quantityType.name), total: \(quantityType.valueFormat.format(total))")
         .accessibilityHint("Double tap to view analytics and history")
