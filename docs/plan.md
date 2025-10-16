@@ -536,3 +536,104 @@ ForEach(Array(hiddenQuantityTypes.enumerated()), id: \.element.id) { index, quan
 - `7e18062` - Fix layout issues: duplicate items and stale totals
 - `f885500` - Implement observable pattern and fix layout spacing issues
 - `90d799f` - Fix duplicate hidden items and spacing issues between cards
+
+---
+
+## 🎨 Day 5d - Code Cleanup & UI Polish
+
+### Major Improvements ✅
+
+#### 1. Removed Migration Code Complexity
+**Problem**: Migration logic from Day 4 added 164 lines of complex code that was more trouble than worth.
+
+**Changes**:
+- ✅ Removed `migrateDataIfNeeded()` function (~70 lines)
+- ✅ Removed `AppVersion` tracking struct (~50 lines)
+- ✅ Removed `getOldDatabaseURL()` and `getNewDatabaseURL()` helpers
+- ✅ Deleted `docs/DATA_PROTECTION.md` documentation
+- ✅ Simplified `NumpadApp.swift` from 231 lines → 67 lines (58% reduction!)
+
+**Result**: Clean, simple app initialization with CloudKit/Local/In-Memory fallback.
+
+**File**: `Numpad/NumpadApp.swift`
+
+#### 2. Fixed Duplicate Rendering Bug
+**Problem**: Each main quantity was rendered twice (once in Quick Add, once in main list).
+
+**Root Cause**: Over-aggressive de-duplication logic was filtering the Quick Add quantity from the main list.
+
+**Fix**:
+- Quick Add is now just a convenient shortcut
+- Main list always shows ALL visible quantities
+- Removed complex index mapping in move/delete operations
+
+**Result**: Every quantity appears exactly once in the main list, plus optionally in Quick Add.
+
+**File**: `Numpad/Views/ContentView.swift:53-61, 317-328`
+
+#### 3. Added Debug-Only Data Reset
+**Problem**: Bad data in iCloud causing duplicate rendering and corruption.
+
+**Solution**: Added reset button that:
+- ✅ Only visible in DEBUG builds (hidden in production)
+- ✅ Shows confirmation dialog before deletion
+- ✅ Deletes all entries and quantity types
+- ✅ Syncs deletion to iCloud
+- ✅ Auto-reseeds default quantities
+
+**Usage**: Tap red trash icon (top-left, debug only) → Confirm → Fresh start
+
+**File**: `Numpad/Views/ContentView.swift:89-100, 120-131, 350-384`
+
+#### 4. Fixed Duplicate ID Detection
+**Problem**: Database contained actual duplicate records with same UUID.
+
+**Solution**: Added de-duplication filters:
+- ✅ `mainListQuantities` - filters duplicates, logs warnings
+- ✅ `uniqueHiddenQuantities` - filters duplicates, logs warnings
+- ✅ Enhanced reset function with duplicate counting
+
+**Result**: App handles corrupt data gracefully, no more ForEach crashes.
+
+**File**: `Numpad/Views/ContentView.swift:56-65, 223-233`
+
+#### 5. Applied Apple HIG Design Standards
+**Problem**: Layout felt awkward with inconsistent spacing and cramped cards.
+
+**Changes Applied**:
+
+**QuantityTypeCard**:
+- ✅ Increased padding: 16/12pt → 20/18pt (50% more vertical space)
+- ✅ Larger total font: 28pt → 34pt
+- ✅ Bigger plus button: 32pt → 36pt
+- ✅ Better internal spacing: 4pt → 6pt
+- ✅ Lighter background: 0.08 → 0.06 opacity
+- ✅ Continuous corner radius (12pt)
+- ✅ Center-aligned content for better balance
+
+**ContentView Layout**:
+- ✅ LazyVStack for better performance
+- ✅ Increased card spacing: 12pt → 16pt
+- ✅ Optimized Quick Add section styling
+- ✅ Refined hidden section with lighter backgrounds
+- ✅ Standard iOS spacing throughout (8, 12, 16, 20pt)
+
+**Result**: More spacious, breathable layout following iOS design patterns.
+
+**Files**:
+- `Numpad/Views/Components/QuantityTypeCard.swift`
+- `Numpad/Views/ContentView.swift`
+
+### Build Status: ✅ `BUILD SUCCEEDED`
+
+### Files Changed (Day 5d)
+- `Numpad/NumpadApp.swift` - Removed migration complexity (164 → 67 lines)
+- `Numpad/Views/ContentView.swift` - Fixed duplicates, added reset, improved layout
+- `Numpad/Views/Components/QuantityTypeCard.swift` - Increased size and spacing
+- `docs/DATA_PROTECTION.md` - Deleted (no longer needed)
+
+### Key Learnings
+- Less code is better code - migration logic wasn't worth the complexity
+- De-duplication at render time handles corrupt data gracefully
+- Debug-only features are powerful for development without cluttering production
+- Apple HIG spacing standards (8/12/16/20pt) create professional-feeling layouts
