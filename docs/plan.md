@@ -221,6 +221,7 @@ Views (SwiftUI)
 - **Day 2**: Edit quantity types, hiding, advanced aggregations (Sum/Avg/Median/Min/Max/Count), app icon
 - **Day 3**: Home screen widgets (Small/Medium/Large variants), SwiftData integration via App Groups
 - **Day 4**: App Store preparation, performance optimization, code review, accessibility improvements
+- **Day 5**: Resolved critical build errors and runtime issues related to data sharing between the main app, widget, and App Intents.
 - **Next**: Testing, App Store submission preparation
 
 ---
@@ -302,10 +303,11 @@ Views (SwiftUI)
 
 See `docs/CODE_REVIEW.md` for full analysis. Key remaining items:
 
-### Critical (Should Fix Before Launch)
-- [ ] Add App Group container to main app's ModelContainer
-- [ ] Fix AppIntent container configuration for Siri/Shortcuts
-- [ ] Replace `fatalError()` with in-memory fallback
+### Critical (FIXED! ✅)
+- [x] Add App Group container to main app's ModelContainer
+- [x] Fix AppIntent container configuration for Siri/Shortcuts
+- [x] Replace `fatalError()` with in-memory fallback
+- [x] Add automatic data migration to prevent data loss on updates
 
 ### High Priority (Can Fix Post-Launch)
 - [ ] Refactor ContentView to avoid creating AnalyticsViewModel per row
@@ -318,6 +320,52 @@ See `docs/CODE_REVIEW.md` for full analysis. Key remaining items:
 - [ ] Add widget refresh triggers from app
 - [ ] Improve widget accessibility labels
 - [ ] Add haptic feedback for key interactions
+
+---
+
+## 🛡️ Data Protection & Migration (Day 4 - Critical Fixes)
+
+### What We Fixed
+1. **App Group Configuration**: All storage now uses `group.com.bennywijatno.numpad.app`
+   - Main app: ✅ Uses App Group
+   - Widget extension: ✅ Uses App Group
+   - App Intents (Siri): ✅ Uses App Group
+
+2. **Automatic Data Migration**: Prevents data loss when updating the app
+   - Detects old database location (app container)
+   - Copies to new location (App Group container)
+   - Runs automatically on app launch
+   - Non-destructive (keeps old data as backup)
+
+3. **Graceful Error Handling**: Three-tier fallback strategy
+   - Try CloudKit with App Group → Local storage with App Group → In-memory storage
+   - App never crashes due to storage failure
+   - User data is protected at each step
+
+4. **Version Tracking**: Know when the app was updated
+   - Tracks current version in UserDefaults
+   - Logs updates and fresh installs
+   - Helps debug data-related issues
+
+### Why This Matters
+**The Problem**: When we added App Group support to share data between the app, widget, and Siri shortcuts, SwiftData created a NEW database in the App Group container. The old database in the app container was abandoned, causing data loss.
+
+**The Solution**: Before creating the ModelContainer, we check if old data exists and automatically migrate it to the new location. This ensures users never lose data during updates.
+
+### Files Changed
+- `Numpad/NumpadApp.swift` - Added migration logic and version tracking
+- `Numpad/AppIntents/LogEntryIntent.swift` - Now uses App Group
+- `Numpad/AppIntents/AddToQuantityIntent.swift` - Now uses App Group
+- `docs/DATA_PROTECTION.md` - Comprehensive documentation (NEW)
+
+### Testing This Fix
+To verify migration works:
+1. Install old version without App Group → Create test data
+2. Install new version with migration code
+3. Check Console logs for: `✅ Migrated: default.store`
+4. Verify data appears in app
+
+See `docs/DATA_PROTECTION.md` for complete details.
 
 ---
 
@@ -340,3 +388,36 @@ See `docs/CODE_REVIEW.md` for full analysis. Key remaining items:
 ### Git Commits
 - `026dd80` - Complete widget implementation and icon setup
 - `7719637` - Optimize app for performance, stability, and App Store readiness
+
+---
+
+## 🛠️ Critical Build & Runtime Fixes (Day 5)
+
+### The Problem
+A series of cascading build failures and a critical runtime bug were identified:
+1.  **Build Failures**: A name collision between our `Entry` SwiftData model and a type of the same name in WidgetKit's `TimelineProvider` protocol caused the build to fail.
+2.  **Runtime Bug**: Inconsistencies in the data model class name (`Entry` vs. `NumpadEntry`) between the main app and the widget prevented the widget from loading and displaying any shared data.
+3.  **Scoping Issues**: The `AppVersion` utility struct was not correctly scoped, causing additional build failures.
+
+### The Solution
+A comprehensive refactoring was performed to address these issues:
+1.  **Model Renaming**: The `Entry` model was renamed to `NumpadEntry` across the entire project. This resolved the name collision with WidgetKit and standardized the data model.
+    - Updated the class definition in both the main app and widget targets.
+    - Updated all `ModelContainer` schemas (`NumpadApp.swift`, `NumpadWidget.swift`, `LogEntryIntent.swift`, `AddToQuantityIntent.swift`).
+    - Updated all `@Relationship` inverse keypaths in `QuantityType.swift`.
+    - Updated all views, view models, and App Intents that referenced the old model name.
+2.  **Code Consolidation**: The `AppVersion` utility struct's code was moved directly into `NumpadApp.swift` to resolve the build-time scoping issue, and the redundant file was deleted.
+3.  **Data Consistency**: These changes ensure that the main app, widget, and App Intents all share and interpret the same data model schema, guaranteeing data consistency and fixing the widget's inability to display data.
+
+### Files Changed
+- `Numpad/Models/Entry.swift`
+- `NumpadWidget/Entry.swift`
+- `Numpad/Models/QuantityType.swift`
+- `NumpadWidget/QuantityType.swift`
+- `Numpad/NumpadApp.swift`
+- `NumpadWidget/NumpadWidget.swift`
+- `Numpad/ViewModels/EntryViewModel.swift`
+- `Numpad/Views/EntryHistoryView.swift`
+- `Numpad/AppIntents/LogEntryIntent.swift`
+- `Numpad/AppIntents/AddToQuantityIntent.swift`
+- `Numpad/Utils/AppVersion.swift` (deleted)

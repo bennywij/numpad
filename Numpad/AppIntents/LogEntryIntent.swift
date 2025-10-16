@@ -20,15 +20,18 @@ struct LogEntryIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        // Get model context
+        // Get model context using App Group for shared data access
         let schema = Schema([
             QuantityType.self,
-            Entry.self,
+            NumpadEntry.self,
         ])
+
+        // Use same App Group as main app to access shared data
         let modelConfiguration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
-            cloudKitDatabase: .automatic
+            groupContainer: .identifier("group.com.bennywijatno.numpad.app"),
+            cloudKitDatabase: .none  // Use local storage for intents
         )
 
         guard let modelContainer = try? ModelContainer(for: schema, configurations: [modelConfiguration]) else {
@@ -47,7 +50,7 @@ struct LogEntryIntent: AppIntent {
         }
 
         // Create entry
-        let entry = Entry(
+        let entry = NumpadEntry(
             value: value,
             timestamp: Date(),
             notes: notes,

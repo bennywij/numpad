@@ -13,8 +13,8 @@ struct EntryHistoryView: View {
     @Environment(\.modelContext) private var modelContext
 
     @StateObject private var viewModel: EntryViewModel
-    @State private var entries: [Entry] = []
-    @State private var editingEntry: Entry?
+    @State private var entries: [NumpadEntry] = []
+    @State private var editingEntry: NumpadEntry?
     @State private var showingEditSheet = false
 
     init(quantityType: QuantityType, modelContext: ModelContext) {
@@ -59,7 +59,7 @@ struct EntryHistoryView: View {
 }
 
 struct EntryRow: View {
-    let entry: Entry
+    let entry: NumpadEntry
 
     var body: some View {
         HStack {
@@ -93,13 +93,13 @@ struct EditEntryView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    let entry: Entry
+    let entry: NumpadEntry
     @State private var value: Double
     @State private var notes: String
 
     @StateObject private var viewModel: EntryViewModel
 
-    init(entry: Entry, modelContext: ModelContext) {
+    init(entry: NumpadEntry, modelContext: ModelContext) {
         self.entry = entry
         self._value = State(initialValue: entry.value)
         self._notes = State(initialValue: entry.notes)

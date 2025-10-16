@@ -62,6 +62,7 @@ struct Provider: TimelineProvider {
     }
 
     private func fetchQuantityTypes(count: Int) -> [QuantityTypeData] {
+        print("➡️ Widget: Starting fetchQuantityTypes")
         // Use shared container for better performance
         guard let container = Self.sharedContainer else {
             print("❌ Widget: ModelContainer not available")
@@ -69,6 +70,7 @@ struct Provider: TimelineProvider {
         }
 
         do {
+            print("➡️ Widget: ModelContainer available, fetching...")
             let context = ModelContext(container)
             let descriptor = FetchDescriptor<QuantityType>(
                 predicate: #Predicate { !$0.isHidden },
@@ -76,10 +78,12 @@ struct Provider: TimelineProvider {
             )
 
             let quantityTypes = try context.fetch(descriptor)
+            print("➡️ Widget: Fetched \(quantityTypes.count) quantity types")
 
             return quantityTypes.prefix(count).map { qt in
                 let entries = (qt.entries ?? []).map { $0.value }
                 let total = qt.aggregationType.aggregate(entries)
+                print("  - Processing \(qt.name): \(entries.count) entries, total = \(total)")
 
                 return QuantityTypeData(
                     name: qt.name,
@@ -91,7 +95,7 @@ struct Provider: TimelineProvider {
                 )
             }
         } catch {
-            print("Error fetching quantity types: \(error)")
+            print("❌ Widget: Error fetching quantity types: \(error)")
             return []
         }
     }

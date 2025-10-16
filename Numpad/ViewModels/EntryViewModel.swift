@@ -19,7 +19,7 @@ class EntryViewModel: ObservableObject {
     }
 
     func addEntry(value: Double, to quantityType: QuantityType, timestamp: Date = Date(), notes: String = "") {
-        let entry = Entry(
+        let entry = NumpadEntry(
             value: value,
             timestamp: timestamp,
             notes: notes,
@@ -33,13 +33,13 @@ class EntryViewModel: ObservableObject {
         saveContext()
     }
 
-    func updateEntry(_ entry: Entry, value: Double, notes: String) {
+    func updateEntry(_ entry: NumpadEntry, value: Double, notes: String) {
         entry.value = value
         entry.notes = notes
         saveContext()
     }
 
-    func deleteEntry(_ entry: Entry) {
+    func deleteEntry(_ entry: NumpadEntry) {
         modelContext.delete(entry)
         saveContext()
     }
@@ -57,7 +57,7 @@ class EntryViewModel: ObservableObject {
         }
     }
 
-    func fetchEntries(for quantityType: QuantityType) -> [Entry] {
+    func fetchEntries(for quantityType: QuantityType) -> [NumpadEntry] {
         // Use the relationship to get entries - SwiftData optimizes this
         guard let entries = quantityType.entries else {
             return []

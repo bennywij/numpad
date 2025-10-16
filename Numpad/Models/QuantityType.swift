@@ -23,8 +23,8 @@ final class QuantityType {
     var sortOrder: Int = 0
     var isHidden: Bool = false
 
-    @Relationship(deleteRule: .cascade, inverse: \Entry.quantityType)
-    var entries: [Entry]?
+    @Relationship(deleteRule: .cascade, inverse: \NumpadEntry.quantityType)
+    var entries: [NumpadEntry]?
 
     var valueFormat: ValueFormat {
         get { ValueFormat(rawValue: valueFormatRawValue) ?? .integer }

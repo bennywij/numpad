@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Entry {
+final class NumpadEntry {
     var id: UUID = UUID()
     var value: Double = 0
 
