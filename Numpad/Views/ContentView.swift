@@ -73,6 +73,8 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add quantity type")
+                    .accessibilityHint("Create a new quantity to track")
                 }
             }
             .sheet(item: $addEntryFor) { quantityType in
@@ -108,6 +110,7 @@ struct ContentView: View {
                     Image(systemName: quantityType.icon)
                         .font(.title)
                         .foregroundColor(Color(hex: quantityType.colorHex))
+                        .accessibilityHidden(true)
 
                     VStack(alignment: .leading) {
                         Text(quantityType.name)
@@ -124,6 +127,7 @@ struct ContentView: View {
 
                     Image(systemName: "chevron.right")
                         .foregroundColor(.secondary)
+                        .accessibilityHidden(true)
                 }
                 .padding()
                 .background(
@@ -133,6 +137,8 @@ struct ContentView: View {
                 )
             }
             .padding(.horizontal)
+            .accessibilityLabel("Quick add to \(quantityType.name)")
+            .accessibilityHint("Double tap to add a new entry")
         }
     }
 
@@ -206,6 +212,8 @@ struct ContentView: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
+            .accessibilityLabel("Create your first quantity type")
+            .accessibilityHint("Double tap to add a new quantity to track")
         }
         .padding()
     }

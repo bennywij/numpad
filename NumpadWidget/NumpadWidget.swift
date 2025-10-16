@@ -10,6 +10,22 @@ import SwiftUI
 import SwiftData
 
 struct Provider: TimelineProvider {
+    // Shared container to avoid expensive recreation on every widget refresh
+    private static let sharedContainer: ModelContainer? = {
+        do {
+            return try ModelContainer(
+                for: QuantityType.self, NumpadEntry.self,
+                configurations: ModelConfiguration(
+                    groupContainer: .identifier("group.com.bennywijatno.numpad.app"),
+                    cloudKitDatabase: .none
+                )
+            )
+        } catch {
+            print("❌ Widget: Failed to create ModelContainer: \(error)")
+            return nil
+        }
+    }()
+
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(date: Date(), quantityTypes: [])
     }
@@ -46,15 +62,13 @@ struct Provider: TimelineProvider {
     }
 
     private func fetchQuantityTypes(count: Int) -> [QuantityTypeData] {
-        do {
-            let container = try ModelContainer(
-                for: QuantityType.self, NumpadEntry.self,
-                configurations: ModelConfiguration(
-                    groupContainer: .identifier("group.com.bennywijatno.numpad.app"),
-                    cloudKitDatabase: .none
-                )
-            )
+        // Use shared container for better performance
+        guard let container = Self.sharedContainer else {
+            print("❌ Widget: ModelContainer not available")
+            return []
+        }
 
+        do {
             let context = ModelContext(container)
             let descriptor = FetchDescriptor<QuantityType>(
                 predicate: #Predicate { !$0.isHidden },

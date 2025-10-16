@@ -118,14 +118,29 @@ Create widgets to display quantity totals at a glance:
 - [ ] Widget configuration to select which quantity types to show (currently shows top by sort order)
 - [ ] Tap widget to open app to that quantity's analytics
 
-### 3. UI Polish
+### 3. App Store Preparation 🎯
+Performance, stability, and distribution readiness:
+- [ ] Comprehensive code review for performance optimization
+- [ ] Memory leak detection and optimization
+- [ ] SwiftData query optimization and indexing
+- [ ] CloudKit error handling improvements
+- [ ] Repository cleanup (unused files, optimized assets)
+- [ ] Privacy policy and data handling documentation
+- [ ] App Store metadata (screenshots, description, keywords)
+- [ ] App versioning and build configuration
+- [ ] Accessibility audit (VoiceOver, Dynamic Type, contrast)
+- [ ] Testing across device sizes and iOS versions
 - [ ] Empty state improvements
 - [ ] Loading states for CloudKit sync
-- [ ] Error handling and user feedback
 - [ ] Confirmation dialogs for destructive actions
-- [ ] Accessibility improvements (VoiceOver, Dynamic Type)
 
-### 4. Export/Backup
+### 4. UI Polish
+- [ ] Error handling and user feedback improvements
+- [ ] Haptic feedback for key interactions
+- [ ] Animation polish and transitions
+- [ ] Dark mode optimization
+
+### 5. Export/Backup
 - [ ] CSV export of all data
 - [ ] Per-quantity type export
 - [ ] Share sheet integration
@@ -175,16 +190,28 @@ Views (SwiftUI)
 
 ## Future Ideas (Backlog)
 
-- [ ] Charts/graphs for trends
+### High Value Features
+- [ ] **Multi-dimensional quantities**: Track related values (e.g., miles + gallons → MPG, weight + reps for exercise)
+- [ ] **Simple trend charts**: Visual sparklines or mini-charts in analytics cards
+- [ ] **CSV data export**: Export to Files app or share via share sheet
+- [ ] Charts/graphs for trends (full-featured)
 - [ ] Reminders to log entries
-- [ ] Custom time period groupings
-- [ ] Tags for entries
-- [ ] Multi-device sync testing
+
+### Testing & Quality
+- [ ] **CloudKit multi-device sync testing**: Verify data syncs correctly across devices
+- [ ] Multi-device conflict resolution testing
+
+### Platform & Integration
 - [ ] iPad optimization
 - [ ] Mac Catalyst version
 - [ ] Shortcuts app integration beyond Siri
 - [ ] Health app integration for relevant metrics
 - [ ] Apple Watch complication
+
+### Advanced Features
+- [ ] Custom time period groupings
+- [ ] Tags for entries
+- [ ] Derived/calculated quantities (formulas between quantity types)
 
 ---
 

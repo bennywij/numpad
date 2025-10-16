@@ -11,6 +11,8 @@ import SwiftData
 @MainActor
 class QuantityTypeViewModel: ObservableObject {
     private let modelContext: ModelContext
+    @Published var lastError: Error?
+    @Published var errorMessage: String?
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -32,7 +34,7 @@ class QuantityTypeViewModel: ObservableObject {
             sortOrder: fetchAllQuantityTypes().count
         )
         modelContext.insert(quantityType)
-        try? modelContext.save()
+        saveContext()
         return quantityType
     }
 
@@ -47,12 +49,24 @@ class QuantityTypeViewModel: ObservableObject {
         quantityType.valueFormat = valueFormat
         quantityType.icon = icon
         quantityType.colorHex = colorHex
-        try? modelContext.save()
+        saveContext()
     }
 
     func deleteQuantityType(_ quantityType: QuantityType) {
         modelContext.delete(quantityType)
-        try? modelContext.save()
+        saveContext()
+    }
+
+    private func saveContext() {
+        do {
+            try modelContext.save()
+            lastError = nil
+            errorMessage = nil
+        } catch {
+            lastError = error
+            errorMessage = "Failed to save changes. Please try again."
+            print("❌ SwiftData save failed: \(error.localizedDescription)")
+        }
     }
 
     func fetchAllQuantityTypes() -> [QuantityType] {

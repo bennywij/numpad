@@ -16,6 +16,8 @@ final class QuantityType {
     var aggregationTypeRawValue: String = AggregationType.sum.rawValue
     var icon: String = "number"  // SF Symbol name
     var colorHex: String = "#007AFF"
+
+    // Frequently queried fields (SwiftData automatically indexes for predicates)
     var lastUsedAt: Date = Date()
     var createdAt: Date = Date()
     var sortOrder: Int = 0

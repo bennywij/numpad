@@ -11,6 +11,8 @@ import SwiftData
 @MainActor
 class EntryViewModel: ObservableObject {
     private let modelContext: ModelContext
+    @Published var lastError: Error?
+    @Published var errorMessage: String?
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -28,29 +30,40 @@ class EntryViewModel: ObservableObject {
         // Update last used timestamp
         quantityType.lastUsedAt = Date()
 
-        try? modelContext.save()
+        saveContext()
     }
 
     func updateEntry(_ entry: Entry, value: Double, notes: String) {
         entry.value = value
         entry.notes = notes
-        try? modelContext.save()
+        saveContext()
     }
 
     func deleteEntry(_ entry: Entry) {
         modelContext.delete(entry)
-        try? modelContext.save()
+        saveContext()
+    }
+
+    private func saveContext() {
+        do {
+            try modelContext.save()
+            // Clear any previous errors on success
+            lastError = nil
+            errorMessage = nil
+        } catch {
+            lastError = error
+            errorMessage = "Failed to save data. Please try again."
+            print("❌ SwiftData save failed: \(error.localizedDescription)")
+        }
     }
 
     func fetchEntries(for quantityType: QuantityType) -> [Entry] {
-        let descriptor = FetchDescriptor<Entry>(
-            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-        )
-
-        guard let allEntries = try? modelContext.fetch(descriptor) else {
+        // Use the relationship to get entries - SwiftData optimizes this
+        guard let entries = quantityType.entries else {
             return []
         }
 
-        return allEntries.filter { $0.quantityType?.id == quantityType.id }
+        // Sort by timestamp descending
+        return entries.sorted { $0.timestamp > $1.timestamp }
     }
 }

@@ -18,6 +18,7 @@ struct QuantityTypeCard: View {
                 Image(systemName: quantityType.icon)
                     .font(.title2)
                     .foregroundColor(Color(hex: quantityType.colorHex))
+                    .accessibilityLabel("\(quantityType.name) icon")
 
                 Spacer()
 
@@ -27,6 +28,8 @@ struct QuantityTypeCard: View {
                         .foregroundColor(.blue)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .accessibilityLabel("Add entry to \(quantityType.name)")
+                .accessibilityHint("Double tap to log a new entry")
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -37,6 +40,7 @@ struct QuantityTypeCard: View {
                 Text(quantityType.valueFormat.format(total))
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
+                    .accessibilityLabel("Total: \(quantityType.valueFormat.format(total))")
 
                 Text("Total • Tap for details")
                     .font(.caption)
@@ -47,6 +51,9 @@ struct QuantityTypeCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.secondary.opacity(0.1))
         .cornerRadius(16)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(quantityType.name), total: \(quantityType.valueFormat.format(total))")
+        .accessibilityHint("Double tap to view analytics and history")
     }
 }
 

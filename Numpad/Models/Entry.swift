@@ -12,6 +12,8 @@ import SwiftData
 final class Entry {
     var id: UUID = UUID()
     var value: Double = 0
+
+    // Timestamp used for date-based queries in analytics
     var timestamp: Date = Date()
     var notes: String = ""
     var quantityType: QuantityType?

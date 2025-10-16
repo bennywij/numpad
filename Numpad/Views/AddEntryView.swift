@@ -25,6 +25,33 @@ struct AddEntryView: View {
         self._viewModel = StateObject(wrappedValue: EntryViewModel(modelContext: modelContext))
     }
 
+    private var isValidInput: Bool {
+        // Validate based on value format
+        switch quantityType.valueFormat {
+        case .integer, .decimal:
+            // Must be positive and reasonable
+            return value > 0 && value < 1_000_000
+        case .duration:
+            // Duration: 0 to 24 hours (86400 seconds)
+            return value >= 0 && value < 86400
+        }
+    }
+
+    private var validationMessage: String? {
+        if value == 0 {
+            return "Enter a value"
+        }
+        if !isValidInput {
+            switch quantityType.valueFormat {
+            case .duration:
+                return "Duration must be less than 24 hours"
+            default:
+                return "Value must be between 0 and 1,000,000"
+            }
+        }
+        return nil
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -85,8 +112,22 @@ struct AddEntryView: View {
                         TextField("Add notes...", text: $notes, axis: .vertical)
                             .textFieldStyle(.roundedBorder)
                             .lineLimit(3...6)
+                            .onChange(of: notes) { _, newValue in
+                                // Limit notes to 500 characters
+                                if newValue.count > 500 {
+                                    notes = String(newValue.prefix(500))
+                                }
+                            }
                     }
                     .padding(.horizontal)
+
+                    // Validation message
+                    if let message = validationMessage {
+                        Text(message)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.horizontal)
+                    }
 
                     Spacer()
                 }
@@ -110,7 +151,7 @@ struct AddEntryView: View {
                         )
                         dismiss()
                     }
-                    .disabled(value == 0)
+                    .disabled(!isValidInput)
                     .fontWeight(.semibold)
                 }
             }
