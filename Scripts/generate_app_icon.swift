@@ -85,8 +85,9 @@ func createAppIcon(size: CGFloat, scale: Int) -> NSImage {
         }
     }
 
-    // Add a subtle highlight to suggest it's a calculator/numpad
-    // Draw number "1" in the top-left button
+    // Add subtle numbers to suggest it's a numpad
+    // Draw "4" and "2" in their correct numpad positions
+    // Real numpad layout: 7 8 9 (row 0), 4 5 6 (row 1), 1 2 3 (row 2), 0 (row 3)
     if size >= 60 {
         let fontSize = size * 0.12
         let font = NSFont.systemFont(ofSize: fontSize, weight: .semibold)
@@ -95,13 +96,19 @@ func createAppIcon(size: CGFloat, scale: Int) -> NSImage {
             .foregroundColor: NSColor.white.withAlphaComponent(0.9)
         ]
 
-        // Position for "1" in first button
-        let numberString = "1" as NSString
-        let textSize = numberString.size(withAttributes: attributes)
-        let x = padding + (buttonWidth - textSize.width) / 2
-        let y = padding + gridHeight - buttonHeight + (buttonHeight - textSize.height) / 2
+        // Draw "4" in middle row, left column (row 1, col 0)
+        let number4 = "4" as NSString
+        let text4Size = number4.size(withAttributes: attributes)
+        let x4 = padding + (buttonWidth - text4Size.width) / 2
+        let y4 = padding + gridHeight - (2 * buttonHeight) - verticalSpacing + (buttonHeight - text4Size.height) / 2
+        number4.draw(at: NSPoint(x: x4, y: y4), withAttributes: attributes)
 
-        numberString.draw(at: NSPoint(x: x, y: y), withAttributes: attributes)
+        // Draw "2" in third row, middle column (row 2, col 1)
+        let number2 = "2" as NSString
+        let text2Size = number2.size(withAttributes: attributes)
+        let x2 = padding + buttonWidth + horizontalSpacing + (buttonWidth - text2Size.width) / 2
+        let y2 = padding + gridHeight - (3 * buttonHeight) - (2 * verticalSpacing) + (buttonHeight - text2Size.height) / 2
+        number2.draw(at: NSPoint(x: x2, y: y2), withAttributes: attributes)
     }
 
     image.unlockFocus()
