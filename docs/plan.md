@@ -72,8 +72,10 @@ Simulate a spreadsheet where users track different "columns" of values with auto
 
 ### UI Improvements
 - [x] Larger plus buttons on quantity type cards (better tap targets)
-- [x] New app icon with numpad grid design
-- [x] Fixed app icon size warnings (all icons resized to correct dimensions)
+- [x] New app icon with numpad grid design showing "4" and "2" in correct numpad positions
+- [x] Fixed all app icon sizes to match iOS 2025 standards (verified via web search)
+- [x] App icon generator script updated to use scale factors correctly
+- [x] Icon composer integration (glass effect icon available as alternative)
 
 ### Infrastructure
 - [x] CloudKit entitlements with automatic fallback
@@ -101,16 +103,18 @@ Improve the existing Siri integration to support specific quantity types and fle
 
 ### 2. Home Screen Widget ✅
 Create widgets to display quantity totals at a glance:
-- [x] Create widget extension target
+- [x] Create widget extension target with proper configuration
 - [x] Small widget: Single quantity type with icon, name, and total
 - [x] Medium widget: 3 quantity types in a grid
 - [x] Large widget: 6 quantity types in a list
 - [x] Auto-refresh widget data using Timeline (15 min intervals)
 - [x] Widget color matches quantity type color scheme
-- [x] SwiftData integration via App Groups
+- [x] SwiftData integration via App Groups for shared data access
 - [x] Respects aggregation type (Sum/Avg/Median/Min/Max/Count)
-- [x] Fixed iOS deployment target and app icon size warnings
-- [x] Resolved build configuration issues (fresh target creation)
+- [x] Fixed iOS deployment target to 17.0 (was incorrectly set to 26.0)
+- [x] Created manual Info.plist with NSExtension dictionary (required for widget installation)
+- [x] Resolved "Invalid placeholder attributes" error via fresh target creation
+- [x] Widget builds and installs successfully on simulator
 - [ ] Widget configuration to select which quantity types to show (currently shows top by sort order)
 - [ ] Tap widget to open app to that quantity's analytics
 

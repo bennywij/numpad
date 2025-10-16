@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8512A5652EA0B49A008D893B /* numpad-glass-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 8512A5642EA0B49A008D893B /* numpad-glass-icon.icon */; };
 		85E4917B2EA09B250040BD3A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E4917A2EA09B240040BD3A /* WidgetKit.framework */; };
 		85E4917D2EA09B250040BD3A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E4917C2EA09B250040BD3A /* SwiftUI.framework */; };
 		85E4918A2EA09B260040BD3A /* NumpadWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 85E491782EA09B240040BD3A /* NumpadWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -58,6 +59,7 @@
 
 /* Begin PBXFileReference section */
 		850507112EA0285D00F40BA9 /* Numpad.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Numpad.entitlements; sourceTree = "<group>"; };
+		8512A5642EA0B49A008D893B /* numpad-glass-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "numpad-glass-icon.icon"; sourceTree = "<group>"; };
 		85E491782EA09B240040BD3A /* NumpadWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NumpadWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		85E4917A2EA09B240040BD3A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		85E4917C2EA09B250040BD3A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -131,6 +133,7 @@
 				A1000002CA /* Views */,
 				A1000002DA /* AppIntents */,
 				A10000006A /* Assets.xcassets */,
+				8512A5642EA0B49A008D893B /* numpad-glass-icon.icon */,
 				A10000026A /* Info.plist */,
 			);
 			path = Numpad;
@@ -292,6 +295,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000005A /* Assets.xcassets in Resources */,
+				8512A5652EA0B49A008D893B /* numpad-glass-icon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -528,14 +532,17 @@
 		A10000037A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "numpad-glass-icon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Numpad/Numpad.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Numpad/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Numpad;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSSiriUsageDescription = "Allows us to log data in our app";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -558,14 +565,17 @@
 		A10000038A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "numpad-glass-icon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Numpad/Numpad.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Numpad/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Numpad;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSSiriUsageDescription = "Allows us to log data in our app";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

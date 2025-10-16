@@ -1,4 +1,7 @@
 {
+  "properties" : {
+    "icon-composer-file" : "numpad-glass-icon.icon"
+  },
   "images" : [
     {
       "filename" : "Icon-20@2x.png",
