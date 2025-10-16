@@ -3,10 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		85E4917B2EA09B250040BD3A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E4917A2EA09B240040BD3A /* WidgetKit.framework */; };
+		85E4917D2EA09B250040BD3A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E4917C2EA09B250040BD3A /* SwiftUI.framework */; };
+		85E4918A2EA09B260040BD3A /* NumpadWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 85E491782EA09B240040BD3A /* NumpadWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A10000001A /* NumpadApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000002A /* NumpadApp.swift */; };
 		A10000003A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000004A /* ContentView.swift */; };
 		A10000005A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000006A /* Assets.xcassets */; };
@@ -29,8 +32,35 @@
 		A10000023A /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000024A /* AppShortcuts.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		85E491882EA09B260040BD3A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000033A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 85E491772EA09B240040BD3A;
+			remoteInfo = NumpadWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		85E4918B2EA09B260040BD3A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				85E4918A2EA09B260040BD3A /* NumpadWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		850507112EA0285D00F40BA9 /* Numpad.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Numpad.entitlements; sourceTree = "<group>"; };
+		85E491782EA09B240040BD3A /* NumpadWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NumpadWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		85E4917A2EA09B240040BD3A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		85E4917C2EA09B250040BD3A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		A10000002A /* NumpadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumpadApp.swift; sourceTree = "<group>"; };
 		A10000004A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A10000006A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -55,11 +85,38 @@
 		A10000026A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		85E4917E2EA09B250040BD3A /* NumpadWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = NumpadWidget; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		85E491752EA09B240040BD3A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				85E4917D2EA09B250040BD3A /* SwiftUI.framework in Frameworks */,
+				85E4917B2EA09B250040BD3A /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
+		85E491792EA09B240040BD3A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				85E4917A2EA09B240040BD3A /* WidgetKit.framework */,
+				85E4917C2EA09B250040BD3A /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		A10000027A = {
 			isa = PBXGroup;
 			children = (
 				A10000028A /* Numpad */,
+				85E4917E2EA09B250040BD3A /* NumpadWidget */,
+				85E491792EA09B240040BD3A /* Frameworks */,
 				A10000029A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -83,6 +140,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000025A /* Numpad.app */,
+				85E491782EA09B240040BD3A /* NumpadWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -144,16 +202,40 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		85E491772EA09B240040BD3A /* NumpadWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 85E4918F2EA09B260040BD3A /* Build configuration list for PBXNativeTarget "NumpadWidgetExtension" */;
+			buildPhases = (
+				85E491742EA09B240040BD3A /* Sources */,
+				85E491752EA09B240040BD3A /* Frameworks */,
+				85E491762EA09B240040BD3A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				85E4917E2EA09B250040BD3A /* NumpadWidget */,
+			);
+			name = NumpadWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = NumpadWidgetExtension;
+			productReference = 85E491782EA09B240040BD3A /* NumpadWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		A1000002FA /* Numpad */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A10000030A /* Build configuration list for PBXNativeTarget "Numpad" */;
 			buildPhases = (
 				A10000031A /* Sources */,
 				A10000032A /* Resources */,
+				85E4918B2EA09B260040BD3A /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				85E491892EA09B260040BD3A /* PBXTargetDependency */,
 			);
 			name = Numpad;
 			productName = Numpad;
@@ -167,9 +249,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
+				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					85E491772EA09B240040BD3A = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 					A1000002FA = {
 						CreatedOnToolsVersion = 16.0;
 					};
@@ -189,11 +274,19 @@
 			projectRoot = "";
 			targets = (
 				A1000002FA /* Numpad */,
+				85E491772EA09B240040BD3A /* NumpadWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		85E491762EA09B240040BD3A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A10000032A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -205,6 +298,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		85E491742EA09B240040BD3A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A10000031A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -233,7 +333,79 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		85E491892EA09B260040BD3A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 85E491772EA09B240040BD3A /* NumpadWidgetExtension */;
+			targetProxy = 85E491882EA09B260040BD3A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		85E4918C2EA09B260040BD3A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = NumpadWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4GU56C3WPH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = NumpadWidget;
+				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bennywijatno.numpad.app.NumpadWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		85E4918D2EA09B260040BD3A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = NumpadWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4GU56C3WPH;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = NumpadWidget;
+				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bennywijatno.numpad.app.NumpadWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		A10000035A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -420,6 +592,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		85E4918F2EA09B260040BD3A /* Build configuration list for PBXNativeTarget "NumpadWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				85E4918C2EA09B260040BD3A /* Debug */,
+				85E4918D2EA09B260040BD3A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A10000030A /* Build configuration list for PBXNativeTarget "Numpad" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

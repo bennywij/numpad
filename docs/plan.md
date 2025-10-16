@@ -73,6 +73,7 @@ Simulate a spreadsheet where users track different "columns" of values with auto
 ### UI Improvements
 - [x] Larger plus buttons on quantity type cards (better tap targets)
 - [x] New app icon with numpad grid design
+- [x] Fixed app icon size warnings (all icons resized to correct dimensions)
 
 ### Infrastructure
 - [x] CloudKit entitlements with automatic fallback
@@ -80,6 +81,8 @@ Simulate a spreadsheet where users track different "columns" of values with auto
 - [x] Git repository initialized
 - [x] README with setup instructions
 - [x] Scripts directory with app icon generator
+- [x] Widget extension with App Groups for data sharing
+- [x] Scheme configuration (Numpad as default, widget extension hidden)
 
 ---
 
@@ -96,17 +99,20 @@ Improve the existing Siri integration to support specific quantity types and fle
 - [ ] Add App Shortcuts for common quantity types
 - [ ] Test with various Siri phrasings
 
-### 2. Home Screen Widget
+### 2. Home Screen Widget ✅
 Create widgets to display quantity totals at a glance:
-- [ ] Create widget extension target
-- [ ] Small widget: Single quantity type with icon, name, and total
-- [ ] Medium widget: 2-3 quantity types in a grid
-- [ ] Large widget: 4-6 quantity types with mini charts
-- [ ] Widget configuration to select which quantity types to show
+- [x] Create widget extension target
+- [x] Small widget: Single quantity type with icon, name, and total
+- [x] Medium widget: 3 quantity types in a grid
+- [x] Large widget: 6 quantity types in a list
+- [x] Auto-refresh widget data using Timeline (15 min intervals)
+- [x] Widget color matches quantity type color scheme
+- [x] SwiftData integration via App Groups
+- [x] Respects aggregation type (Sum/Avg/Median/Min/Max/Count)
+- [x] Fixed iOS deployment target and app icon size warnings
+- [x] Resolved build configuration issues (fresh target creation)
+- [ ] Widget configuration to select which quantity types to show (currently shows top by sort order)
 - [ ] Tap widget to open app to that quantity's analytics
-- [ ] Auto-refresh widget data using Timeline
-- [ ] Support for multiple widget instances with different configs
-- [ ] Widget color matches quantity type color scheme
 
 ### 3. UI Polish
 - [ ] Empty state improvements
@@ -182,7 +188,8 @@ Views (SwiftUI)
 
 - **Day 1**: Initial scaffold, models, basic UI, CloudKit setup, navigation fixes, backdating feature
 - **Day 2**: Edit quantity types, hiding, advanced aggregations (Sum/Avg/Median/Min/Max/Count), app icon
-- **Next**: Enhanced Siri intents with flexible parsing, home screen widgets
+- **Day 3**: Home screen widgets (Small/Medium/Large variants), SwiftData integration via App Groups
+- **Next**: Enhanced Siri intents with flexible parsing, widget deep linking, widget configuration
 
 ---
 
