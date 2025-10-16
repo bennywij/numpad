@@ -61,7 +61,7 @@ struct ContentView: View {
                         }
 
                         // All quantity type cards (sorted by manual sort order)
-                        LazyVStack(spacing: 16) {
+                        VStack(spacing: 16) {
                             ForEach(visibleQuantityTypes) { quantityType in
                                 QuantityTypeRow(
                                     quantityType: quantityType,
@@ -82,9 +82,12 @@ struct ContentView: View {
 
                         // Hidden quantity types section
                         if !hiddenQuantityTypes.isEmpty {
+                            Divider()
+                                .padding(.vertical, 24)
+                                .padding(.horizontal, 16)
+
                             hiddenQuantitiesSection
                                 .padding(.horizontal, 16)
-                                .padding(.top, 32)
                         }
                     }
                     .padding(.bottom, 20)
@@ -170,15 +173,16 @@ struct ContentView: View {
 
     // MARK: - Hidden Quantities Section
     private var hiddenQuantitiesSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("HIDDEN")
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(.secondary)
                 .tracking(0.5)
 
+            // Use VStack instead of ForEach to avoid duplication
             VStack(spacing: 8) {
-                ForEach(hiddenQuantityTypes) { quantityType in
+                ForEach(Array(hiddenQuantityTypes.enumerated()), id: \.element.id) { index, quantityType in
                     Button {
                         editQuantityType = quantityType
                     } label: {
@@ -206,6 +210,8 @@ struct ContentView: View {
                         .cornerRadius(10)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .accessibilityLabel("Hidden: \(quantityType.name)")
+                    .accessibilityHint("Double tap to edit and unhide")
                 }
             }
         }
