@@ -50,11 +50,9 @@ struct AddQuantityTypeView: View {
                     TextField("Name", text: $name)
                         .autocapitalization(.words)
 
-                    if !isCompound {
-                        Picker("Format", selection: $selectedFormat) {
-                            ForEach(ValueFormat.allCases) { format in
-                                Text(format.displayName).tag(format)
-                            }
+                    Picker("Format", selection: $selectedFormat) {
+                        ForEach(ValueFormat.allCases) { format in
+                            Text(format.displayName).tag(format)
                         }
                     }
 

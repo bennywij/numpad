@@ -99,6 +99,7 @@ struct CompoundInputView: View {
     @State private var value2: Double = 0
     @State private var date1: Date = Date()
     @State private var date2: Date = Date()
+    @State private var hasUserInput: Bool = false
 
     enum Field {
         case input1
@@ -152,10 +153,22 @@ struct CompoundInputView: View {
                 .focused($focusedField, equals: .input2)
             }
         }
-        .onChange(of: value1) { _, _ in updateCalculation() }
-        .onChange(of: value2) { _, _ in updateCalculation() }
-        .onChange(of: date1) { _, _ in updateCalculation() }
-        .onChange(of: date2) { _, _ in updateCalculation() }
+        .onChange(of: value1) { _, _ in
+            hasUserInput = true
+            updateCalculation()
+        }
+        .onChange(of: value2) { _, _ in
+            hasUserInput = true
+            updateCalculation()
+        }
+        .onChange(of: date1) { _, _ in
+            hasUserInput = true
+            updateCalculation()
+        }
+        .onChange(of: date2) { _, _ in
+            hasUserInput = true
+            updateCalculation()
+        }
         .onAppear {
             initializeDefaults()
             updateCalculation()
@@ -217,8 +230,8 @@ struct CompoundInputView: View {
     }
 
     private func formatResult() -> String {
-        // Check for error states
-        if config.operation == .divide && value2 == 0 {
+        // Check for error states (only show after user input)
+        if config.operation == .divide && value2 == 0 && hasUserInput {
             return "Error: Divide by zero"
         }
 
