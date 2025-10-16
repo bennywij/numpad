@@ -20,6 +20,8 @@ final class QuantityType {
     var createdAt: Date = Date()
     var sortOrder: Int = 0
     var isHidden: Bool = false
+    var isCompound: Bool = false
+    var compoundConfigJSON: String = ""
 
     @Relationship(deleteRule: .cascade, inverse: \NumpadEntry.quantityType)
     var entries: [NumpadEntry]?
@@ -44,7 +46,9 @@ final class QuantityType {
         lastUsedAt: Date = Date(),
         createdAt: Date = Date(),
         sortOrder: Int = 0,
-        isHidden: Bool = false
+        isHidden: Bool = false,
+        isCompound: Bool = false,
+        compoundConfigJSON: String = ""
     ) {
         self.id = id
         self.name = name
@@ -56,5 +60,89 @@ final class QuantityType {
         self.createdAt = createdAt
         self.sortOrder = sortOrder
         self.isHidden = isHidden
+        self.isCompound = isCompound
+        self.compoundConfigJSON = compoundConfigJSON
+    }
+
+    // MARK: - Compound Configuration Helpers
+
+    var compoundConfig: CompoundConfig? {
+        get {
+            guard isCompound, !compoundConfigJSON.isEmpty else { return nil }
+            guard let data = compoundConfigJSON.data(using: .utf8) else {
+                print("⚠️ Widget: Failed to convert compoundConfigJSON to Data for quantity: \(name)")
+                return nil
+            }
+            do {
+                return try JSONDecoder().decode(CompoundConfig.self, from: data)
+            } catch {
+                print("⚠️ Widget: Failed to decode CompoundConfig for quantity: \(name), error: \(error)")
+                return nil
+            }
+        }
+        set {
+            guard let config = newValue else {
+                compoundConfigJSON = ""
+                return
+            }
+            do {
+                let data = try JSONEncoder().encode(config)
+                guard let json = String(data: data, encoding: .utf8) else {
+                    print("⚠️ Widget: Failed to convert encoded data to string for quantity: \(name)")
+                    compoundConfigJSON = ""
+                    return
+                }
+                compoundConfigJSON = json
+            } catch {
+                print("⚠️ Widget: Failed to encode CompoundConfig for quantity: \(name), error: \(error)")
+                compoundConfigJSON = ""
+            }
+        }
+    }
+}
+
+// MARK: - Compound Configuration
+
+struct CompoundConfig: Codable, Equatable {
+    var input1Label: String
+    var input1Format: ValueFormat
+    var input2Label: String
+    var input2Format: ValueFormat
+    var operation: CompoundOperation
+
+    enum CompoundOperation: String, Codable, CaseIterable {
+        case divide = "/"
+        case multiply = "*"
+        case add = "+"
+        case subtract = "-"
+        case timeDifference = "time_diff"  // Special: Date - Date → minutes
+
+        var displayName: String {
+            switch self {
+            case .divide: return "Divide (A ÷ B)"
+            case .multiply: return "Multiply (A × B)"
+            case .add: return "Add (A + B)"
+            case .subtract: return "Subtract (A - B)"
+            case .timeDifference: return "Time Range (End - Start)"
+            }
+        }
+
+        func calculate(_ value1: Double, _ value2: Double) -> Double? {
+            switch self {
+            case .divide:
+                guard value2 != 0 else { return nil }  // Return nil instead of 0
+                return value1 / value2
+            case .multiply:
+                return value1 * value2
+            case .add:
+                return value1 + value2
+            case .subtract:
+                return value1 - value2
+            case .timeDifference:
+                // Assumes values are timestamps in seconds since reference
+                // No abs() - maintains sign to indicate direction
+                return (value2 - value1) / 60  // Convert to minutes
+            }
+        }
     }
 }

@@ -26,22 +26,32 @@ struct AddEntryView: View {
     }
 
     private var isValidInput: Bool {
-        // Validate based on value format
+        // For compound inputs, allow any value (including 0 and negative)
+        if quantityType.isCompound {
+            // Just check for reasonable bounds
+            return value > -1_000_000 && value < 1_000_000
+        }
+
+        // Validate based on value format for non-compound
         switch quantityType.valueFormat {
         case .integer, .decimal:
             // Must be positive and reasonable
             return value > 0 && value < 1_000_000
         case .duration:
-            // Duration: 0 to 24 hours (86400 seconds)
-            return value >= 0 && value < 86400
+            // Duration: 0 to 24 hours (1440 minutes, not 86400 seconds)
+            return value >= 0 && value < 1440
         }
     }
 
     private var validationMessage: String? {
-        if value == 0 {
+        // Skip "enter a value" check for compound inputs
+        if !quantityType.isCompound && value == 0 {
             return "Enter a value"
         }
         if !isValidInput {
+            if quantityType.isCompound {
+                return "Value must be between -1,000,000 and 1,000,000"
+            }
             switch quantityType.valueFormat {
             case .duration:
                 return "Duration must be less than 24 hours"
@@ -71,7 +81,8 @@ struct AddEntryView: View {
                     // Value input
                     ValueInputView(
                         valueFormat: quantityType.valueFormat,
-                        value: $value
+                        value: $value,
+                        compoundConfig: quantityType.compoundConfig
                     )
                     .padding(.horizontal)
 

@@ -77,6 +77,18 @@ Simulate a spreadsheet where users track different "columns" of values with auto
 - [x] App icon generator script updated to use scale factors correctly
 - [x] Icon composer integration (glass effect icon available as alternative)
 
+### Compound Input System (Day 6) ✅
+- [x] Support for 2-element compound inputs (e.g., miles ÷ gallons, start time → end time)
+- [x] 5 operation types: Divide, Multiply, Add, Subtract, Time Difference
+- [x] CompoundConfig model with JSON serialization (minimal backend impact)
+- [x] CompoundInputView component with dual number/time inputs
+- [x] Real-time calculation display with error handling (division by zero)
+- [x] Integration with AddQuantityTypeView for easy setup
+- [x] Stores calculated value (not components) for simplicity
+- [x] Validation supports negative and zero values for compound quantities
+- [x] Widget support for compound quantity types
+- [x] Error logging for JSON encode/decode failures
+
 ### Infrastructure
 - [x] CloudKit entitlements with automatic fallback
 - [x] Remote notifications for CloudKit push
@@ -191,7 +203,7 @@ Views (SwiftUI)
 ## Future Ideas (Backlog)
 
 ### High Value Features
-- [ ] **Multi-dimensional quantities**: Track related values (e.g., miles + gallons → MPG, weight + reps for exercise)
+- [x] **Multi-dimensional quantities**: Track related values (e.g., miles + gallons → MPG, weight + reps for exercise) - **COMPLETED Day 6**
 - [ ] **Simple trend charts**: Visual sparklines or mini-charts in analytics cards
 - [ ] **CSV data export**: Export to Files app or share via share sheet
 - [ ] Charts/graphs for trends (full-featured)
@@ -637,3 +649,123 @@ ForEach(Array(hiddenQuantityTypes.enumerated()), id: \.element.id) { index, quan
 - De-duplication at render time handles corrupt data gracefully
 - Debug-only features are powerful for development without cluttering production
 - Apple HIG spacing standards (8/12/16/20pt) create professional-feeling layouts
+
+---
+
+## 🧮 Day 6 - Compound Input System
+
+### Overview
+Implemented support for compound quantities that require multiple inputs and calculate a result (e.g., miles ÷ gallons = MPG, reading start time → end time = duration).
+
+### Design Philosophy
+**Complexity at UI layer only** - Backend models remain simple:
+- Stores only the calculated result (single Double value)
+- No changes to Entry model
+- Minimal additions to QuantityType (2 optional fields)
+- All aggregations work unchanged
+
+### Implementation Details
+
+#### Backend Changes (Minimal)
+**Modified Files**:
+- `Numpad/Models/QuantityType.swift` - Added 2 fields: `isCompound: Bool`, `compoundConfigJSON: String`
+- `NumpadWidget/QuantityType.swift` - Same changes for widget support
+
+**New Structures**:
+```swift
+struct CompoundConfig: Codable {
+    var input1Label: String
+    var input1Format: ValueFormat
+    var input2Label: String
+    var input2Format: ValueFormat
+    var operation: CompoundOperation
+
+    enum CompoundOperation {
+        case divide, multiply, add, subtract, timeDifference
+    }
+}
+```
+
+#### UI Layer (Where Complexity Lives)
+**Modified Files**:
+- `Numpad/Views/Components/ValueInputView.swift` - Added CompoundInputView as nested component
+- `Numpad/Views/AddQuantityTypeView.swift` - Added compound configuration section
+- `Numpad/Views/AddEntryView.swift` - Updated validation to support compound inputs
+
+**Key Features**:
+1. **Dual Input Fields**: Number or date/time inputs based on operation
+2. **Real-time Calculation**: Live preview of result as user types
+3. **Error Handling**: Division by zero displays "Error: Divide by zero"
+4. **Smart Defaults**: Time difference defaults to "30 min ago → now"
+5. **Validation**: Allows negative/zero results for compound operations
+
+### Code Review & Fixes
+All 6 critical issues identified by Gemini code review were fixed:
+
+1. ✅ **Widget Missing CompoundConfig** - Added struct to widget target
+2. ✅ **Division by Zero** - Returns `nil`, UI shows error message
+3. ✅ **Validation for Compound** - Allows -1M to 1M range (including 0 and negatives)
+4. ✅ **Time Difference Bug** - Removed `abs()`, preserves sign
+5. ✅ **Duration Validation** - Fixed from 86400 seconds to 1440 minutes
+6. ✅ **JSON Logging** - Added error logging with do-catch blocks
+
+### Use Cases Enabled
+
+**Reading Time Tracking**:
+- Operation: Time Difference
+- Input 1: Start time (default: 30 min ago)
+- Input 2: End time (default: now)
+- Result: Duration in minutes → displayed as "2h 15m"
+
+**Fuel Economy Tracking**:
+- Operation: Divide
+- Input 1: Miles driven (decimal)
+- Input 2: Gallons used (decimal)
+- Result: MPG → displayed as "28.57"
+
+**Exercise Metrics**:
+- Operation: Multiply
+- Input 1: Weight lifted (integer)
+- Input 2: Reps completed (integer)
+- Result: Total volume → displayed as "2400.00"
+
+### Technical Decisions
+
+**Why store calculated value only?**
+- Keeps Entry model unchanged (no migration needed)
+- All existing analytics/aggregations work
+- Simplifies widget implementation
+- Users enter values once (frictionless)
+
+**Trade-off**: Cannot edit components later, must re-enter. This is acceptable for a tracking app where entries represent point-in-time measurements.
+
+**Why JSON for compound config?**
+- SwiftData-friendly (single String field)
+- Easy to migrate if structure changes
+- Properly logged decode failures
+- Widget and main app share same logic
+
+### Files Changed (Day 6)
+- `Numpad/Models/QuantityType.swift` (+92 lines)
+- `NumpadWidget/QuantityType.swift` (+90 lines)
+- `Numpad/Views/Components/ValueInputView.swift` (+163 lines)
+- `Numpad/Views/AddQuantityTypeView.swift` (+63 lines)
+- `Numpad/Views/AddEntryView.swift` (+21 lines)
+
+**Total**: +429 lines, 5 files modified
+
+### Build Status: ✅ `BUILD SUCCEEDED`
+
+### Backward Compatibility
+- ✅ Existing quantity types work unchanged
+- ✅ isCompound defaults to `false`
+- ✅ compoundConfigJSON defaults to `""`
+- ✅ Widget displays compound quantities correctly
+- ✅ CloudKit sync works with new fields
+
+### Future Enhancements (Deferred)
+- [ ] Persist compound input state across navigation
+- [ ] Add validation for time range (enforce end > start)
+- [ ] Preview compound format in AddQuantityTypeView
+- [ ] More operations (modulo, power, etc.)
+- [ ] 3+ input compound quantities

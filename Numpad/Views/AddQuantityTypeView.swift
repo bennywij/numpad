@@ -18,6 +18,14 @@ struct AddQuantityTypeView: View {
     @State private var selectedIcon: String = "number"
     @State private var selectedColorHex: String = "#007AFF"
 
+    // Compound input configuration
+    @State private var isCompound: Bool = false
+    @State private var input1Label: String = ""
+    @State private var input1Format: ValueFormat = .integer
+    @State private var input2Label: String = ""
+    @State private var input2Format: ValueFormat = .integer
+    @State private var operation: CompoundConfig.CompoundOperation = .divide
+
     @StateObject private var viewModel: QuantityTypeViewModel
 
     init(modelContext: ModelContext) {
@@ -42,15 +50,47 @@ struct AddQuantityTypeView: View {
                     TextField("Name", text: $name)
                         .autocapitalization(.words)
 
-                    Picker("Format", selection: $selectedFormat) {
-                        ForEach(ValueFormat.allCases) { format in
-                            Text(format.displayName).tag(format)
+                    if !isCompound {
+                        Picker("Format", selection: $selectedFormat) {
+                            ForEach(ValueFormat.allCases) { format in
+                                Text(format.displayName).tag(format)
+                            }
                         }
                     }
 
                     Picker("Aggregation", selection: $selectedAggregationType) {
                         ForEach(AggregationType.allCases) { aggregation in
                             Text(aggregation.displayName).tag(aggregation)
+                        }
+                    }
+
+                    Toggle("Compound Input", isOn: $isCompound)
+                }
+
+                if isCompound {
+                    Section("Compound Configuration") {
+                        TextField("First Input Label", text: $input1Label)
+                            .autocapitalization(.words)
+
+                        Picker("First Input Format", selection: $input1Format) {
+                            ForEach(ValueFormat.allCases) { format in
+                                Text(format.displayName).tag(format)
+                            }
+                        }
+
+                        TextField("Second Input Label", text: $input2Label)
+                            .autocapitalization(.words)
+
+                        Picker("Second Input Format", selection: $input2Format) {
+                            ForEach(ValueFormat.allCases) { format in
+                                Text(format.displayName).tag(format)
+                            }
+                        }
+
+                        Picker("Operation", selection: $operation) {
+                            ForEach(CompoundConfig.CompoundOperation.allCases, id: \.self) { op in
+                                Text(op.displayName).tag(op)
+                            }
                         }
                     }
                 }
@@ -117,16 +157,29 @@ struct AddQuantityTypeView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Create") {
-                        _ = viewModel.createQuantityType(
+                        let quantityType = viewModel.createQuantityType(
                             name: name,
                             valueFormat: selectedFormat,
                             aggregationType: selectedAggregationType,
                             icon: selectedIcon,
                             colorHex: selectedColorHex
                         )
+
+                        // If compound, configure it
+                        if isCompound {
+                            quantityType.isCompound = true
+                            quantityType.compoundConfig = CompoundConfig(
+                                input1Label: input1Label,
+                                input1Format: input1Format,
+                                input2Label: input2Label,
+                                input2Format: input2Format,
+                                operation: operation
+                            )
+                        }
+
                         dismiss()
                     }
-                    .disabled(name.isEmpty)
+                    .disabled(name.isEmpty || (isCompound && (input1Label.isEmpty || input2Label.isEmpty)))
                     .fontWeight(.semibold)
                 }
             }
