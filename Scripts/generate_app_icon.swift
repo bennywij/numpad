@@ -33,7 +33,8 @@ try? fileManager.createDirectory(atPath: outputDirectory, withIntermediateDirect
 
 // Function to create an app icon with a numpad-style design
 func createAppIcon(size: CGFloat, scale: Int) -> NSImage {
-    let image = NSImage(size: NSSize(width: size, height: size))
+    let actualSize = size * CGFloat(scale)
+    let image = NSImage(size: NSSize(width: actualSize, height: actualSize))
 
     image.lockFocus()
 
@@ -50,15 +51,15 @@ func createAppIcon(size: CGFloat, scale: Int) -> NSImage {
 
     context?.drawLinearGradient(
         gradient,
-        start: CGPoint(x: 0, y: size),
-        end: CGPoint(x: size, y: 0),
+        start: CGPoint(x: 0, y: actualSize),
+        end: CGPoint(x: actualSize, y: 0),
         options: []
     )
 
     // Draw a 3x4 grid pattern resembling a numpad
-    let padding = size * 0.15
-    let gridWidth = size - (padding * 2)
-    let gridHeight = size - (padding * 2)
+    let padding = actualSize * 0.15
+    let gridWidth = actualSize - (padding * 2)
+    let gridHeight = actualSize - (padding * 2)
 
     let buttonWidth = gridWidth / 3.2
     let buttonHeight = gridHeight / 4.5
@@ -72,7 +73,7 @@ func createAppIcon(size: CGFloat, scale: Int) -> NSImage {
             let y = padding + CGFloat(row) * (buttonHeight + verticalSpacing)
 
             let buttonRect = NSRect(x: x, y: y, width: buttonWidth, height: buttonHeight)
-            let buttonPath = NSBezierPath(roundedRect: buttonRect, xRadius: size * 0.06, yRadius: size * 0.06)
+            let buttonPath = NSBezierPath(roundedRect: buttonRect, xRadius: actualSize * 0.06, yRadius: actualSize * 0.06)
 
             // Button background - white with transparency
             NSColor.white.withAlphaComponent(0.25).setFill()
@@ -80,7 +81,7 @@ func createAppIcon(size: CGFloat, scale: Int) -> NSImage {
 
             // Button border - subtle white outline
             NSColor.white.withAlphaComponent(0.4).setStroke()
-            buttonPath.lineWidth = size * 0.01
+            buttonPath.lineWidth = actualSize * 0.01
             buttonPath.stroke()
         }
     }
@@ -88,8 +89,8 @@ func createAppIcon(size: CGFloat, scale: Int) -> NSImage {
     // Add subtle numbers to suggest it's a numpad
     // Draw "4" and "2" in their correct numpad positions
     // Real numpad layout: 7 8 9 (row 0), 4 5 6 (row 1), 1 2 3 (row 2), 0 (row 3)
-    if size >= 60 {
-        let fontSize = size * 0.12
+    if actualSize >= 60 {
+        let fontSize = actualSize * 0.12
         let font = NSFont.systemFont(ofSize: fontSize, weight: .semibold)
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
