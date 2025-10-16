@@ -45,7 +45,18 @@ class AnalyticsViewModel: ObservableObject {
     }
 
     func calculateTotal(for quantityType: QuantityType) -> Double {
-        guard let entries = quantityType.entries else { return 0 }
+        // CRITICAL FIX: Don't rely on relationship loading - fetch entries explicitly
+        let quantityTypeID = quantityType.id
+        let descriptor = FetchDescriptor<NumpadEntry>(
+            predicate: #Predicate<NumpadEntry> { entry in
+                entry.quantityType?.id == quantityTypeID
+            }
+        )
+
+        guard let entries = try? modelContext.fetch(descriptor) else {
+            return 0
+        }
+
         let values = entries.map { $0.value }
         return quantityType.aggregationType.aggregate(values)
     }
@@ -54,7 +65,17 @@ class AnalyticsViewModel: ObservableObject {
         for quantityType: QuantityType,
         groupedBy period: GroupingPeriod
     ) -> [GroupedTotal] {
-        guard let entries = quantityType.entries else { return [] }
+        // CRITICAL FIX: Fetch entries explicitly instead of relying on relationship
+        let quantityTypeID = quantityType.id
+        let descriptor = FetchDescriptor<NumpadEntry>(
+            predicate: #Predicate<NumpadEntry> { entry in
+                entry.quantityType?.id == quantityTypeID
+            }
+        )
+
+        guard let entries = try? modelContext.fetch(descriptor) else {
+            return []
+        }
 
         if period == .all {
             let values = entries.map { $0.value }

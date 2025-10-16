@@ -57,7 +57,9 @@ struct QuantityTypeCard: View {
     }
 }
 
-// Color extension to parse hex strings
+// MARK: - Color Hex Extension
+// Note: This extension should ideally be in a shared file, but is included here
+// until Color+Hex.swift is properly added to the Xcode project
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

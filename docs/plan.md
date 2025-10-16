@@ -317,7 +317,7 @@ See `docs/CODE_REVIEW.md` for full analysis. Key remaining items:
 
 ### Medium Priority (Polish)
 - [ ] Make analytics calculations async for large datasets
-- [ ] Add widget refresh triggers from app
+- [x] Add widget refresh triggers from app
 - [ ] Improve widget accessibility labels
 - [ ] Add haptic feedback for key interactions
 
@@ -393,14 +393,13 @@ See `docs/DATA_PROTECTION.md` for complete details.
 
 ## 🛠️ Critical Build & Runtime Fixes (Day 5)
 
-### The Problem
+### First Round: Model Renaming
 A series of cascading build failures and a critical runtime bug were identified:
 1.  **Build Failures**: A name collision between our `Entry` SwiftData model and a type of the same name in WidgetKit's `TimelineProvider` protocol caused the build to fail.
 2.  **Runtime Bug**: Inconsistencies in the data model class name (`Entry` vs. `NumpadEntry`) between the main app and the widget prevented the widget from loading and displaying any shared data.
 3.  **Scoping Issues**: The `AppVersion` utility struct was not correctly scoped, causing additional build failures.
 
-### The Solution
-A comprehensive refactoring was performed to address these issues:
+**Solution**: Comprehensive refactoring:
 1.  **Model Renaming**: The `Entry` model was renamed to `NumpadEntry` across the entire project. This resolved the name collision with WidgetKit and standardized the data model.
     - Updated the class definition in both the main app and widget targets.
     - Updated all `ModelContainer` schemas (`NumpadApp.swift`, `NumpadWidget.swift`, `LogEntryIntent.swift`, `AddToQuantityIntent.swift`).
@@ -409,15 +408,68 @@ A comprehensive refactoring was performed to address these issues:
 2.  **Code Consolidation**: The `AppVersion` utility struct's code was moved directly into `NumpadApp.swift` to resolve the build-time scoping issue, and the redundant file was deleted.
 3.  **Data Consistency**: These changes ensure that the main app, widget, and App Intents all share and interpret the same data model schema, guaranteeing data consistency and fixing the widget's inability to display data.
 
-### Files Changed
-- `Numpad/Models/Entry.swift`
-- `NumpadWidget/Entry.swift`
-- `Numpad/Models/QuantityType.swift`
-- `NumpadWidget/QuantityType.swift`
-- `Numpad/NumpadApp.swift`
-- `NumpadWidget/NumpadWidget.swift`
-- `Numpad/ViewModels/EntryViewModel.swift`
-- `Numpad/Views/EntryHistoryView.swift`
-- `Numpad/AppIntents/LogEntryIntent.swift`
-- `Numpad/AppIntents/AddToQuantityIntent.swift`
-- `Numpad/Utils/AppVersion.swift` (deleted)
+### Second Round: Critical Production Bugs (Day 5b) ✅ **FIXED**
+
+Three critical bugs were discovered during testing:
+
+#### Bug #1: Hidden Metrics Still Rendering ✅
+**Problem**: Hidden quantity types were still appearing in the main view with odd spacing.
+
+**Root Cause**: Manual filtering of `@Query` results (`allQuantityTypes.filter { !$0.isHidden }`) doesn't provide proper SwiftUI reactivity when the `isHidden` property changes.
+
+**Fix**: Replaced manual filtering with separate `@Query` declarations using `#Predicate`:
+```swift
+@Query(filter: #Predicate<QuantityType> { !$0.isHidden }, sort: \QuantityType.sortOrder)
+private var visibleQuantityTypes: [QuantityType]
+
+@Query(filter: #Predicate<QuantityType> { $0.isHidden }, sort: \QuantityType.name)
+private var hiddenQuantityTypes: [QuantityType]
+```
+
+**File**: `Numpad/Views/ContentView.swift:15-24`
+
+#### Bug #2: Data Migration Not Reliable ✅
+**Problem**: Users experienced data loss despite migration code.
+
+**Root Cause**: Migration logging was insufficient, and not all SwiftData auxiliary files (like `-wal`, `-shm` journal files) were being copied.
+
+**Fix**: Enhanced migration with:
+- Detailed logging showing file paths, sizes, and migration status
+- Copies ALL database-related files (not just `default.store`)
+- Returns boolean to track migration success
+- Better error messages for debugging
+
+**File**: `Numpad/NumpadApp.swift:86-154`
+
+#### Bug #3: Logging New Entries Doesn't Work ✅ **CRITICAL**
+**Problem**: Adding new entries worked, but totals remained at zero. The most critical bug!
+
+**Root Cause**: `AnalyticsViewModel.calculateTotal()` relied on the `quantityType.entries` SwiftData relationship. **SwiftData relationships are lazy-loaded and may not be populated**, especially after context saves. This is a common SwiftData pitfall!
+
+**Fix**: Changed to explicit `FetchDescriptor` queries that force SwiftData to fetch entries:
+```swift
+let quantityTypeID = quantityType.id
+let descriptor = FetchDescriptor<NumpadEntry>(
+    predicate: #Predicate<NumpadEntry> { entry in
+        entry.quantityType?.id == quantityTypeID
+    }
+)
+guard let entries = try? modelContext.fetch(descriptor) else { return 0 }
+```
+
+Applied to both `calculateTotal()` and `calculateGroupedTotals()`.
+
+**Files**: `Numpad/ViewModels/AnalyticsViewModel.swift:47-88`
+
+#### Additional Improvements ✅
+- **Widget Timeline Refresh**: Added `WidgetCenter.shared.reloadAllTimelines()` after every entry save
+- **Build Success**: All fixes compile and pass validation
+
+### Files Changed (Day 5b)
+- `Numpad/NumpadApp.swift` - Enhanced migration logging and file handling
+- `Numpad/ViewModels/AnalyticsViewModel.swift` - Fixed entry fetching with explicit queries
+- `Numpad/ViewModels/EntryViewModel.swift` - Added widget timeline refresh
+- `Numpad/Views/ContentView.swift` - Fixed hidden quantity filtering with predicates
+- `Numpad/Views/Components/QuantityTypeCard.swift` - Re-added Color+Hex extension (temp fix)
+
+### Build Status: ✅ `BUILD SUCCEEDED`

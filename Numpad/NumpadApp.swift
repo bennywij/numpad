@@ -11,9 +11,11 @@ import SwiftData
 @main
 struct NumpadApp: App {
     var sharedModelContainer: ModelContainer = {
-        // CRITICAL: Migrate data from old location before creating container
+        // CRITICAL: Migrate data from old location SYNCHRONOUSLY before creating container
         // This prevents data loss when switching to App Group storage
-        migrateDataIfNeeded()
+        print("🔄 Starting app initialization...")
+        let migrationResult = migrateDataIfNeeded()
+        print("🔄 Migration completed: \(migrationResult ? "✅ Success" : "⏭️  Skipped")")
 
         let schema = Schema([
             QuantityType.self,
@@ -79,7 +81,9 @@ struct NumpadApp: App {
 // MARK: - Data Migration Utilities
 
 /// Migrate data from old location (app container) to new location (App Group)
-private func migrateDataIfNeeded() {
+/// Returns true if migration was performed, false if skipped
+@discardableResult
+private func migrateDataIfNeeded() -> Bool {
     let oldURL = getOldDatabaseURL()
     let newURL = getNewDatabaseURL()
 
@@ -87,11 +91,17 @@ private func migrateDataIfNeeded() {
     let oldExists = FileManager.default.fileExists(atPath: oldURL.path)
     let newExists = FileManager.default.fileExists(atPath: newURL.path)
 
-    print("🔍 Migration check: Old DB exists: \(oldExists), New DB exists: \(newExists)")
+    print("🔍 Migration check:")
+    print("   Old DB: \(oldURL.path) - Exists: \(oldExists)")
+    print("   New DB: \(newURL.path) - Exists: \(newExists)")
 
     guard oldExists && !newExists else {
-        print("✅ No migration needed")
-        return
+        if newExists {
+            print("✅ Using existing App Group database")
+        } else if !oldExists {
+            print("✅ Fresh install - no migration needed")
+        }
+        return false
     }
 
     print("🚀 Starting database migration...")
@@ -116,22 +126,30 @@ private func migrateDataIfNeeded() {
             options: []
         )
 
-        // Copy database files (default.store and related files)
+        var migratedFiles = 0
+        // Copy database files (default.store and ALL related files like -wal, -shm)
         for file in files {
-            if file.lastPathComponent.hasPrefix("default.store") {
-                let destinationURL = newDirectory.appendingPathComponent(file.lastPathComponent)
+            let filename = file.lastPathComponent
+            if filename.hasPrefix("default.store") || filename.hasSuffix(".db") {
+                let destinationURL = newDirectory.appendingPathComponent(filename)
 
                 if !fileManager.fileExists(atPath: destinationURL.path) {
                     try fileManager.copyItem(at: file, to: destinationURL)
-                    print("✅ Migrated: \(file.lastPathComponent)")
+                    print("✅ Migrated: \(filename) (\(try fileManager.attributesOfItem(atPath: file.path)[.size] as? Int ?? 0) bytes)")
+                    migratedFiles += 1
+                } else {
+                    print("⚠️  Skipped (exists): \(filename)")
                 }
             }
         }
 
-        print("✅ Database migration completed successfully")
+        print("✅ Database migration completed: \(migratedFiles) file(s) migrated")
+        return true
     } catch {
-        print("❌ Migration failed: \(error)")
+        print("❌ Migration failed: \(error.localizedDescription)")
+        print("❌ Error details: \(error)")
         // Don't crash - data is still in old location and can be recovered
+        return false
     }
 }
 

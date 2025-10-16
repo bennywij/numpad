@@ -10,20 +10,24 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \QuantityType.lastUsedAt, order: .reverse) private var allQuantityTypes: [QuantityType]
+
+    // Separate queries for visible and hidden quantity types - this ensures proper reactivity
+    @Query(
+        filter: #Predicate<QuantityType> { !$0.isHidden },
+        sort: \QuantityType.sortOrder,
+        order: .forward
+    ) private var visibleQuantityTypes: [QuantityType]
+
+    @Query(
+        filter: #Predicate<QuantityType> { $0.isHidden },
+        sort: \QuantityType.name
+    ) private var hiddenQuantityTypes: [QuantityType]
+
+    @Query private var allQuantityTypes: [QuantityType]
 
     @State private var addEntryFor: QuantityType?
     @State private var showingAddQuantityType = false
     @State private var editQuantityType: QuantityType?
-
-    // Filter out hidden quantity types for main display
-    private var visibleQuantityTypes: [QuantityType] {
-        allQuantityTypes.filter { !$0.isHidden }
-    }
-
-    private var hiddenQuantityTypes: [QuantityType] {
-        allQuantityTypes.filter { $0.isHidden }
-    }
 
     var body: some View {
         NavigationStack {

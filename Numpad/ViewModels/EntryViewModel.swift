@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import WidgetKit
 
 @MainActor
 class EntryViewModel: ObservableObject {
@@ -50,6 +51,9 @@ class EntryViewModel: ObservableObject {
             // Clear any previous errors on success
             lastError = nil
             errorMessage = nil
+
+            // Reload widget timelines to reflect changes
+            WidgetCenter.shared.reloadAllTimelines()
         } catch {
             lastError = error
             errorMessage = "Failed to save data. Please try again."
