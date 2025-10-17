@@ -11,12 +11,23 @@ struct DurationPicker: View {
     @Binding var totalMinutes: Double
     @State private var hours: Int
     @State private var minutes: Int
+    @State private var selectionFeedback = UISelectionFeedbackGenerator()
+    @State private var lastHapticTime: Date = .distantPast
 
     init(totalMinutes: Binding<Double>) {
         self._totalMinutes = totalMinutes
         let total = Int(totalMinutes.wrappedValue)
         self._hours = State(initialValue: total / 60)
         self._minutes = State(initialValue: total % 60)
+    }
+
+    private func triggerHapticIfNeeded() {
+        let now = Date()
+        // Debounce: only trigger haptic if at least 50ms has passed
+        if now.timeIntervalSince(lastHapticTime) >= 0.05 {
+            selectionFeedback.selectionChanged()
+            lastHapticTime = now
+        }
     }
 
     var body: some View {
@@ -54,8 +65,12 @@ struct DurationPicker: View {
                         Slider(value: Binding(
                             get: { Double(hours) },
                             set: { newValue in
-                                hours = Int(newValue)
-                                updateTotalMinutes()
+                                let newHour = Int(newValue)
+                                if newHour != hours {
+                                    triggerHapticIfNeeded()
+                                    hours = newHour
+                                    updateTotalMinutes()
+                                }
                             }
                         ), in: 0...23, step: 1)
 
@@ -73,8 +88,12 @@ struct DurationPicker: View {
                         Slider(value: Binding(
                             get: { Double(minutes) },
                             set: { newValue in
-                                minutes = Int(newValue)
-                                updateTotalMinutes()
+                                let newMinute = Int(newValue)
+                                if newMinute != minutes {
+                                    triggerHapticIfNeeded()
+                                    minutes = newMinute
+                                    updateTotalMinutes()
+                                }
                             }
                         ), in: 0...59, step: 1)
 

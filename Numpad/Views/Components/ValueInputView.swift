@@ -203,11 +203,8 @@ struct CompoundInputView: View {
                 selection: date,
                 displayedComponents: [.hourAndMinute]
             )
-            .datePickerStyle(.compact)
+            .datePickerStyle(.wheel)
             .labelsHidden()
-            .padding()
-            .background(Color.secondary.opacity(0.1))
-            .cornerRadius(8)
         }
     }
 

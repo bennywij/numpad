@@ -148,7 +148,8 @@ Performance, stability, and distribution readiness:
 
 ### 4. UI Polish
 - [ ] Error handling and user feedback improvements
-- [ ] Haptic feedback for key interactions
+- [x] Haptic feedback for key interactions (entry save, duration sliders with debouncing)
+- [x] Cleaner time picker UI for compound inputs (wheel style)
 - [ ] Animation polish and transitions
 - [ ] Dark mode optimization
 
@@ -331,7 +332,7 @@ See `docs/CODE_REVIEW.md` for full analysis. Key remaining items:
 - [ ] Make analytics calculations async for large datasets
 - [x] Add widget refresh triggers from app
 - [ ] Improve widget accessibility labels
-- [ ] Add haptic feedback for key interactions
+- [x] Add haptic feedback for key interactions
 
 ---
 
@@ -777,6 +778,32 @@ After initial implementation, two UX issues were identified and fixed:
    - Result: Users can choose Integer/Decimal/Duration for result display (e.g., MPG as decimal)
 
 **Commit**: `0693909` - Fix compound input UX issues
+
+### Haptic Feedback & Visual Polish (Day 6 Continued) ✅
+
+Three targeted improvements to enhance tactile and visual feedback:
+
+1. **Haptic feedback on entry save** ✅
+   - Added satisfying medium-impact haptic when saving a new entry
+   - Uses `UIImpactFeedbackGenerator(style: .medium)`
+   - Provides tactile confirmation of successful save
+   - **File**: `AddEntryView.swift:157-159`
+
+2. **Duration slider haptic notches** ✅
+   - Subtle selection haptics for each hour/minute increment
+   - Uses `UISelectionFeedbackGenerator` for light, precise feedback
+   - Debounced to 50ms to prevent haptic spam during fast dragging
+   - Shared debouncing across hours and minutes sliders
+   - **File**: `DurationPicker.swift:14-15, 24-31, 70, 93`
+
+3. **Cleaner time picker UI for compound inputs** ✅
+   - Changed from `.compact` style (bordered boxes) to `.wheel` style
+   - Removed extra padding and background boxes that created visual clutter
+   - Native iOS scrolling wheel picker for start/end time selection
+   - Maintains full usability while looking more minimalist
+   - **File**: `ValueInputView.swift:206-207`
+
+**Result**: More polished, professional-feeling interactions with satisfying tactile feedback and cleaner visual design.
 
 ### Future Enhancements (Deferred)
 - [ ] Persist compound input state across navigation

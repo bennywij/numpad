@@ -154,6 +154,10 @@ struct AddEntryView: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
+                        // Satisfying haptic feedback on save
+                        let impact = UIImpactFeedbackGenerator(style: .medium)
+                        impact.impactOccurred()
+
                         viewModel.addEntry(
                             value: value,
                             to: quantityType,
