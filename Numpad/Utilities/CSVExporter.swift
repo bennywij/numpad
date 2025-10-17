@@ -27,7 +27,7 @@ struct CSVExporter {
             let quantityName = escapeCSV(quantityType.name)
             let rawValue = String(entry.value)
             let formattedValue = escapeCSV(quantityType.valueFormat.format(entry.value))
-            let notes = escapeCSV(entry.notes ?? "")
+            let notes = escapeCSV(entry.notes)
             let aggregationType = quantityType.aggregationType.displayName
             let icon = quantityType.icon
             let color = quantityType.colorHex
