@@ -323,11 +323,11 @@ See `docs/CODE_REVIEW.md` for full analysis. Key remaining items:
 - [x] Add automatic data migration to prevent data loss on updates
 
 ### High Priority (Can Fix Post-Launch)
-- [ ] **Code organization refactoring**: Extract inline utilities to proper files
-  - Move CSVExporter from ContentView.swift to Utilities/CSVExporter.swift
-  - Move ActivityViewController to Views/Components/ActivityViewController.swift
-  - Move ExportFile struct to appropriate location
-  - Note: We've been adding code inline for speed - need cleanup pass
+- [x] **Code organization refactoring**: Extract inline utilities to proper files ✅
+  - Moved CSVExporter from ContentView.swift to Utilities/CSVExporter.swift
+  - Moved ActivityViewController to Views/Components/ActivityViewController.swift
+  - Moved QuantityTypeRow to Views/Components/QuantityTypeRow.swift
+  - Reduced ContentView from 572 → 451 lines (21% reduction)
 - [ ] Refactor ContentView to avoid creating AnalyticsViewModel per row
 - [ ] Cache DateFormatter instances in AnalyticsViewModel
 - [ ] Add loading states for CloudKit sync
@@ -849,6 +849,18 @@ Implemented simple, unobtrusive data export functionality for users who want to 
 - `Numpad/Views/ContentView.swift` - Added export button, CSV generator, share sheet wrapper
 
 **Result**: Users can easily export their complete dataset without cluttering the main interface.
+
+**Refactoring (Post-Implementation)** ✅:
+Following the principle of "make it work, then make it clean," the export feature was refactored into separate files:
+- `Utilities/CSVExporter.swift` - Complete CSV generation and file handling logic (86 lines)
+- `Views/Components/ActivityViewController.swift` - Share sheet wrapper and helpers (38 lines)
+- `Views/Components/QuantityTypeRow.swift` - Extracted row component (31 lines)
+
+This refactoring:
+- Reduced ContentView by 121 lines (21% smaller)
+- Improved separation of concerns
+- Made code more testable and maintainable
+- Added proper UTType metadata to fix iOS device warnings
 
 ### Future Enhancements (Deferred)
 - [ ] Persist compound input state across navigation

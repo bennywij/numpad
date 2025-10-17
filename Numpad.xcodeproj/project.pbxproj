@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		8512A5652EA0B49A008D893B /* numpad-glass-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 8512A5642EA0B49A008D893B /* numpad-glass-icon.icon */; };
+		85427FC02EA2070D0052426E /* QuantityTypeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85427FBF2EA2070D0052426E /* QuantityTypeRow.swift */; };
+		85427FC12EA2070D0052426E /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85427FBE2EA2070D0052426E /* ActivityViewController.swift */; };
 		85E4917B2EA09B250040BD3A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E4917A2EA09B240040BD3A /* WidgetKit.framework */; };
 		85E4917D2EA09B250040BD3A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85E4917C2EA09B250040BD3A /* SwiftUI.framework */; };
 		85E4918A2EA09B260040BD3A /* NumpadWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 85E491782EA09B240040BD3A /* NumpadWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -60,6 +62,8 @@
 /* Begin PBXFileReference section */
 		850507112EA0285D00F40BA9 /* Numpad.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Numpad.entitlements; sourceTree = "<group>"; };
 		8512A5642EA0B49A008D893B /* numpad-glass-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "numpad-glass-icon.icon"; sourceTree = "<group>"; };
+		85427FBE2EA2070D0052426E /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
+		85427FBF2EA2070D0052426E /* QuantityTypeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantityTypeRow.swift; sourceTree = "<group>"; };
 		85E491782EA09B240040BD3A /* NumpadWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NumpadWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		85E4917A2EA09B240040BD3A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		85E4917C2EA09B250040BD3A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -88,6 +92,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		85427FC62EA2079B0052426E /* Utilities */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); name = Utilities; path = Numpad/Utilities; sourceTree = "<group>"; };
 		85E4917E2EA09B250040BD3A /* NumpadWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = NumpadWidget; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -120,6 +125,7 @@
 				85E4917E2EA09B250040BD3A /* NumpadWidget */,
 				85E491792EA09B240040BD3A /* Frameworks */,
 				A10000029A /* Products */,
+				85427FC62EA2079B0052426E /* Utilities */,
 			);
 			sourceTree = "<group>";
 		};
@@ -195,6 +201,8 @@
 		A1000002EA /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				85427FBE2EA2070D0052426E /* ActivityViewController.swift */,
+				85427FBF2EA2070D0052426E /* QuantityTypeRow.swift */,
 				A10000014A /* DurationPicker.swift */,
 				A10000016A /* ValueInputView.swift */,
 				A10000018A /* QuantityTypeCard.swift */,
@@ -239,6 +247,9 @@
 			);
 			dependencies = (
 				85E491892EA09B260040BD3A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				85427FC62EA2079B0052426E /* Utilities */,
 			);
 			name = Numpad;
 			productName = Numpad;
@@ -317,6 +328,8 @@
 				A10000003A /* ContentView.swift in Sources */,
 				A10000007A /* ValueFormat.swift in Sources */,
 				A10000008B /* AggregationType.swift in Sources */,
+				85427FC02EA2070D0052426E /* QuantityTypeRow.swift in Sources */,
+				85427FC12EA2070D0052426E /* ActivityViewController.swift in Sources */,
 				A10000009A /* QuantityType.swift in Sources */,
 				A1000000BA /* Entry.swift in Sources */,
 				A1000000DA /* EntryViewModel.swift in Sources */,
