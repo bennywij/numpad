@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -34,6 +35,8 @@ struct ContentView: View {
     @State private var showingAddQuantityType = false
     @State private var editQuantityType: QuantityType?
     @State private var showingResetConfirmation = false
+    @State private var exportFileURL: URL?
+    @State private var showingExportError = false
 
     // MARK: - Computed Properties
 
@@ -86,6 +89,12 @@ struct ContentView: View {
                         if !hiddenQuantityTypes.isEmpty {
                             hiddenQuantitiesSection
                         }
+
+                        // Export button at bottom (subtle, rarely used)
+                        if !allEntries.isEmpty {
+                            exportButton
+                                .padding(.top, 40)
+                        }
                     }
                     .padding(.bottom, 20)
                 }
@@ -135,6 +144,17 @@ struct ContentView: View {
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("This will permanently delete all quantity types and entries. This action cannot be undone and will also remove data from iCloud.")
+            }
+            .sheet(item: Binding(
+                get: { exportFileURL.map { ExportFile(url: $0) } },
+                set: { exportFileURL = $0?.url }
+            )) { exportFile in
+                ActivityViewController(activityItems: [exportFile.url])
+            }
+            .alert("Export Failed", isPresented: $showingExportError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Unable to export data. Please try again.")
             }
             .task {
                 // Seed default quantity types if none exist
@@ -291,6 +311,26 @@ struct ContentView: View {
         }
     }
 
+    // MARK: - Export Button
+
+    private var exportButton: some View {
+        Button {
+            exportData()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.caption)
+                Text("Export Data")
+                    .font(.caption)
+            }
+            .foregroundColor(.secondary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+        }
+        .accessibilityLabel("Export all data to CSV")
+        .accessibilityHint("Share your data as a CSV file")
+    }
+
     // MARK: - Empty State
 
     private var emptyStateView: some View {
@@ -353,6 +393,25 @@ struct ContentView: View {
         }
 
         try? modelContext.save()
+    }
+
+    private func exportData() {
+        print("📤 Exporting \(allEntries.count) entries...")
+
+        guard let csvContent = CSVExporter.exportAllData(entries: allEntries) else {
+            print("⚠️ No data to export")
+            showingExportError = true
+            return
+        }
+
+        guard let fileURL = CSVExporter.createTemporaryFile(csvContent: csvContent) else {
+            print("❌ Failed to create export file")
+            showingExportError = true
+            return
+        }
+
+        print("✅ Export file created: \(fileURL.lastPathComponent)")
+        exportFileURL = fileURL
     }
 
     private func resetAllData() {
@@ -419,4 +478,84 @@ struct QuantityTypeRow: View {
             }
         }
     }
+}
+
+// MARK: - CSV Export Utility
+
+struct CSVExporter {
+    /// Generates a CSV string from all entries in the database
+    static func exportAllData(entries: [NumpadEntry]) -> String? {
+        guard !entries.isEmpty else { return nil }
+
+        let sortedEntries = entries.sorted { $0.timestamp > $1.timestamp }
+        var csv = "Timestamp,Quantity Name,Value,Formatted Value,Notes,Aggregation Type,Icon,Color\n"
+
+        for entry in sortedEntries {
+            guard let quantityType = entry.quantityType else { continue }
+
+            let timestamp = formatTimestamp(entry.timestamp)
+            let quantityName = escapeCSV(quantityType.name)
+            let rawValue = String(entry.value)
+            let formattedValue = escapeCSV(quantityType.valueFormat.format(entry.value))
+            let notes = escapeCSV(entry.notes ?? "")
+            let aggregationType = quantityType.aggregationType.displayName
+            let icon = quantityType.icon
+            let color = quantityType.colorHex
+
+            csv += "\(timestamp),\(quantityName),\(rawValue),\(formattedValue),\(notes),\(aggregationType),\(icon),\(color)\n"
+        }
+
+        return csv
+    }
+
+    private static func formatTimestamp(_ date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: date)
+    }
+
+    private static func escapeCSV(_ field: String) -> String {
+        if field.contains(",") || field.contains("\"") || field.contains("\n") {
+            let escaped = field.replacingOccurrences(of: "\"", with: "\"\"")
+            return "\"\(escaped)\""
+        }
+        return field
+    }
+
+    static func generateFilename() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let dateString = dateFormatter.string(from: Date())
+        return "Numpad_Export_\(dateString).csv"
+    }
+
+    static func createTemporaryFile(csvContent: String) -> URL? {
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileURL = tempDir.appendingPathComponent(generateFilename())
+
+        do {
+            try csvContent.write(to: fileURL, atomically: true, encoding: .utf8)
+            return fileURL
+        } catch {
+            print("❌ Failed to write CSV file: \(error)")
+            return nil
+        }
+    }
+}
+
+// MARK: - Share Sheet Helpers
+
+struct ActivityViewController: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        return UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+struct ExportFile: Identifiable {
+    let id = UUID()
+    let url: URL
 }
