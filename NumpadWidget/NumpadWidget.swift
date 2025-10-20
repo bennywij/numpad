@@ -67,6 +67,56 @@ struct Provider: AppIntentTimelineProvider {
         }
     }
 
+    /// Calculate total using database-level filtering (same logic as QuantityRepository)
+    private func calculateTotal(for quantityType: QuantityType, context: ModelContext) -> Double {
+        let quantityTypeID = quantityType.id
+        let aggregationPeriod = quantityType.aggregationPeriod
+
+        // Build predicate combining quantity type filter and optional time filter
+        let descriptor: FetchDescriptor<NumpadEntry>
+
+        // Get the time filter if needed
+        let periodStartDate: Date? = {
+            let calendar = Calendar.current
+            let now = Date()
+
+            switch aggregationPeriod {
+            case .allTime:
+                return nil
+            case .daily:
+                return calendar.startOfDay(for: now)
+            case .weekly:
+                return calendar.dateInterval(of: .weekOfYear, for: now)?.start
+            case .monthly:
+                return calendar.dateInterval(of: .month, for: now)?.start
+            }
+        }()
+
+        // Build single predicate combining quantity type filter and optional time filter
+        if let startDate = periodStartDate {
+            descriptor = FetchDescriptor<NumpadEntry>(
+                predicate: #Predicate<NumpadEntry> { entry in
+                    entry.quantityType?.id == quantityTypeID && entry.timestamp >= startDate
+                }
+            )
+        } else {
+            descriptor = FetchDescriptor<NumpadEntry>(
+                predicate: #Predicate<NumpadEntry> { entry in
+                    entry.quantityType?.id == quantityTypeID
+                }
+            )
+        }
+
+        do {
+            let entries = try context.fetch(descriptor)
+            let values = entries.map { $0.value }
+            return quantityType.aggregationType.aggregate(values)
+        } catch {
+            print("❌ Widget.calculateTotal: Failed to fetch entries for \(quantityType.name) - \(error.localizedDescription)")
+            return 0
+        }
+    }
+
     private func fetchQuantityTypes(count: Int, selectedIDs: [String]) -> [QuantityTypeData] {
         print("➡️ Widget: Starting fetchQuantityTypes (count: \(count), selectedIDs: \(selectedIDs.count))")
         // Use shared container for better performance
@@ -103,15 +153,10 @@ struct Provider: AppIntentTimelineProvider {
                 print("➡️ Widget: Using \(filteredQuantityTypes.count) user-selected types")
             }
 
-            // Fetch ALL entries to pass to calculateTotal (for period filtering)
-            let allEntriesDescriptor = FetchDescriptor<NumpadEntry>()
-            let allEntries = (try? context.fetch(allEntriesDescriptor)) ?? []
-
+            // Use efficient database-level queries (no in-memory filtering!)
             return filteredQuantityTypes.map { qt in
-                // Use the new calculateTotal method that respects aggregation period
-                let total = qt.calculateTotal(from: allEntries)
-                let entriesCount = qt.entries?.count ?? 0
-                print("  - Processing \(qt.name): \(entriesCount) entries, total = \(total) (period: \(qt.aggregationPeriod.displayName))")
+                let total = self.calculateTotal(for: qt, context: context)
+                print("  - Processing \(qt.name): total = \(total) (period: \(qt.aggregationPeriod.displayName))")
 
                 return QuantityTypeData(
                     id: qt.id,
