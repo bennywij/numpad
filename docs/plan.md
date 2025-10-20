@@ -1442,11 +1442,69 @@ After each phase, verify ALL of these work:
 
 ---
 
-## 📋 Current Status: Ready for Phase 1
+## 📋 Phase 1: COMPLETED ✅
+
+**Commit**: `4eb9231` - Phase 1: Add predicate support to AggregationPeriod
+
+**What Was Done**:
+- ✅ Added `predicate(relativeTo:)` method to AggregationPeriod enum
+- ✅ Fixed unnecessary type casting (`as Date?` removed)
+- ✅ Added SwiftData import to both main app and widget targets
+- ✅ Design validated with Gemini CLI
+- ✅ Build succeeded with no warnings
+- ✅ User verified - all existing functionality works unchanged
+- ✅ Committed and pushed to remote
+
+**Files Modified**:
+- `Numpad/Models/AggregationPeriod.swift`
+- `NumpadWidget/AggregationPeriod.swift`
+- `docs/plan.md`
+
+**Result**: Foundation layer complete - predicates ready for use in Phase 2
+
+---
+
+## 📋 Phase 2: IN PROGRESS 🚧
+
+**Goal**: Create QuantityRepository for efficient database queries
+
+**Completed**:
+- ✅ Design validated with Gemini CLI
+  - Confirmed: Use `.evaluate()` to combine predicates
+  - Confirmed: `@MainActor` is correct for thread safety
+  - Confirmed: do-catch with logging is best practice
+  - Confirmed: SwiftData optimizes predicates to SQL
+- ✅ Created `Numpad/Repositories/` directory
+- ✅ Implemented `QuantityRepository.swift` with:
+  - `calculateTotal(for:)` - Database-level filtering with combined predicates
+  - `fetchEntries(for:limit:)` - Sorted fetch with optional limit
+  - Proper error handling with logging
+  - `@MainActor` for thread safety
+
+**Files Created**:
+- `Numpad/Repositories/QuantityRepository.swift` (78 lines)
 
 **Next Steps**:
-1. Validate Phase 1 design with Gemini
-2. Implement Phase 1 changes
-3. User testing and verification
-4. Git commit Phase 1
-5. Proceed to Phase 2
+1. ⏸️ **USER ACTION REQUIRED**: Add QuantityRepository.swift to Xcode project
+   - Right-click "Numpad" group → "Add Files to Numpad..."
+   - Select the `Repositories` folder (creates group automatically)
+   - Or: Create "Repositories" group manually, then add file
+   - Ensure "Numpad" target is checked
+2. Build and verify in Xcode
+3. Phase 2 testing (repository methods work correctly)
+4. User verification (no regressions)
+5. Git commit Phase 2
+6. Proceed to Phase 3
+
+**Status**: Repository implementation complete, awaiting Xcode project integration
+
+---
+
+## 📋 Current Status: Phase 2 - Awaiting Xcode Integration
+
+**Progress**: 2/8 phases complete (25%)
+- ✅ Phase 1: Foundation (Predicate support)
+- 🚧 Phase 2: Repository Layer (code complete, needs Xcode integration)
+- ⏳ Phase 3-8: Pending
+
+**Estimated Remaining Time**: ~9.5 hours across 6 phases
