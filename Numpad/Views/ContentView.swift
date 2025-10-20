@@ -36,6 +36,8 @@ struct ContentView: View {
     @State private var showingResetConfirmation = false
     @State private var exportFileURL: URL?
     @State private var showingExportError = false
+    @State private var navigationPath = NavigationPath()
+    @State private var deepLinkQuantityID: UUID?
 
     // MARK: - Computed Properties
 
@@ -67,7 +69,7 @@ struct ContentView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 if visibleQuantityTypes.isEmpty {
                     emptyStateView
@@ -160,6 +162,22 @@ struct ContentView: View {
                 if allQuantityTypes.isEmpty {
                     let vm = QuantityTypeViewModel(modelContext: modelContext)
                     vm.seedDefaultQuantityTypes()
+                }
+            }
+            .navigationDestination(for: QuantityType.self) { quantityType in
+                AnalyticsView(quantityType: quantityType, modelContext: modelContext)
+            }
+            .onOpenURL { url in
+                handleDeepLink(url: url)
+            }
+            .onChange(of: deepLinkQuantityID) { oldValue, newValue in
+                if let quantityID = newValue {
+                    // Find the quantity type and navigate to it
+                    if let quantityType = allQuantityTypes.first(where: { $0.id == quantityID }) {
+                        navigationPath.append(quantityType)
+                    }
+                    // Clear the deep link ID after handling
+                    deepLinkQuantityID = nil
                 }
             }
         }
@@ -367,10 +385,9 @@ struct ContentView: View {
     // MARK: - Helper Methods
 
     /// Calculate total for a quantity type from all entries
+    /// This now uses the quantity type's aggregation period to filter entries
     private func calculateTotal(for quantityType: QuantityType) -> Double {
-        let filteredEntries = allEntries.filter { $0.quantityType?.id == quantityType.id }
-        let values = filteredEntries.map { $0.value }
-        return quantityType.aggregationType.aggregate(values)
+        return quantityType.calculateTotal(from: allEntries)
     }
 
     private func deleteQuantityTypes(at offsets: IndexSet) {
@@ -447,5 +464,22 @@ struct ContentView: View {
         } catch {
             print("❌ Failed to delete data: \(error)")
         }
+    }
+
+    /// Handle deep links from widgets to navigate to specific quantity analytics
+    private func handleDeepLink(url: URL) {
+        print("🔗 Deep link received: \(url)")
+
+        // Expected format: numpad://quantity/{uuid}
+        guard url.scheme == "numpad",
+              url.host == "quantity",
+              let uuidString = url.pathComponents.dropFirst().first,
+              let quantityID = UUID(uuidString: uuidString) else {
+            print("⚠️ Invalid deep link format: \(url)")
+            return
+        }
+
+        print("✅ Parsed quantity ID: \(quantityID)")
+        deepLinkQuantityID = quantityID
     }
 }

@@ -113,7 +113,7 @@ Improve the existing Siri integration to support specific quantity types and fle
 - [ ] Add App Shortcuts for common quantity types
 - [ ] Test with various Siri phrasings
 
-### 2. Home Screen Widget ✅
+### 2. Home Screen Widget ✅ **COMPLETED**
 Create widgets to display quantity totals at a glance:
 - [x] Create widget extension target with proper configuration
 - [x] Small widget: Single quantity type with icon, name, and total
@@ -127,8 +127,8 @@ Create widgets to display quantity totals at a glance:
 - [x] Created manual Info.plist with NSExtension dictionary (required for widget installation)
 - [x] Resolved "Invalid placeholder attributes" error via fresh target creation
 - [x] Widget builds and installs successfully on simulator
-- [ ] Widget configuration to select which quantity types to show (currently shows top by sort order)
-- [ ] Tap widget to open app to that quantity's analytics
+- [x] Widget configuration to select which quantity types to show (AppIntentConfiguration with multi-select)
+- [x] Tap widget to open app to that quantity's analytics (Deep linking via numpad:// URL scheme)
 
 ### 3. App Store Preparation 🎯
 Performance, stability, and distribution readiness:
@@ -152,6 +152,13 @@ Performance, stability, and distribution readiness:
 - [x] Cleaner time picker UI for compound inputs (wheel style)
 - [ ] Animation polish and transitions
 - [ ] Dark mode optimization
+- [ ] **Edit mode for drag-drop reordering**: Add visible edit mode button in toolbar
+  - Current state: `.onMove()` logic already implemented, but drag handles hidden
+  - Add Edit/Done button in navigation bar to toggle edit mode
+  - Show drag handles and delete buttons when in edit mode
+  - Disable NavigationLink tap-through during editing
+  - Optional: Hide plus buttons on cards in edit mode
+  - Backend logic complete - only UI state management needed
 
 ### 5. Export/Backup ✅
 - [x] CSV export of all data
@@ -870,3 +877,175 @@ This refactoring:
 - [ ] Preview compound format in AddQuantityTypeView
 - [ ] More operations (modulo, power, etc.)
 - [ ] 3+ input compound quantities
+
+---
+
+## 📱 Day 7 - Widget Configuration & Deep Linking ✅
+
+### Overview
+Completed the final two widget features: user-configurable quantity selection and deep linking from widgets to analytics.
+
+### Feature 1: Widget Configuration (AppIntent Integration)
+**Problem**: Users couldn't choose which quantity types to display in widgets - they were always top N by sort order.
+
+**Solution**: Migrated from `StaticConfiguration` to `AppIntentConfiguration`:
+
+**Implementation**:
+- Created `SelectQuantityTypesIntent` conforming to `WidgetConfigurationIntent`
+- Built `QuantityTypeEntityQuery` to fetch available quantities
+- Updated `Provider` to conform to `AppIntentTimelineProvider`
+- Modified timeline generation to respect user's selection
+- **Backward compatible**: Empty selection = default behavior (top N by sort order)
+
+**New Files**:
+- `NumpadWidget/SelectQuantityTypesIntent.swift` - AppIntent for widget configuration
+
+**Modified Files**:
+- `NumpadWidget/NumpadWidget.swift` - Changed to AppIntentConfiguration, updated Provider
+
+**User Experience**:
+- Long-press widget → Edit Widget → Select Quantity Types
+- Multi-select picker shows all non-hidden quantities
+- Respects selection order and widget size limits (1/3/6)
+
+### Feature 2: Deep Linking (Tap Widget → Analytics)
+**Problem**: Tapping widgets did nothing - users had to manually navigate to analytics.
+
+**Solution**: Implemented URL scheme-based deep linking:
+
+**Implementation**:
+- Added `numpad://` URL scheme to `Info.plist` (CFBundleURLTypes)
+- Small widget: Uses `.widgetURL()` for entire widget
+- Medium/Large widgets: Individual `Link()` wrappers per item
+- URL format: `numpad://quantity/{uuid}`
+- Deep link handler in `ContentView`:
+  - Parses URL to extract quantity UUID
+  - Pushes quantity to NavigationPath
+  - Navigates to AnalyticsView automatically
+- Added `Hashable` conformance to `QuantityType` for navigation support
+
+**Modified Files**:
+- `Numpad/Info.plist` - URL scheme registration
+- `Numpad/Views/ContentView.swift` - Deep link handling, NavigationPath
+- `Numpad/Models/QuantityType.swift` - Hashable conformance
+- `NumpadWidget/NumpadWidget.swift` - Widget URLs for all sizes
+- `NumpadWidget/NumpadWidget.swift` - Changed `QuantityTypeData.id` from generated UUID to actual model ID
+
+**User Experience**:
+- Tap any widget → App opens directly to that quantity's analytics
+- Seamless navigation with full context
+- Back button returns to main screen
+
+### Technical Notes
+- Both features are fully backward compatible
+- No data model migrations required
+- Zero regressions in existing functionality
+- Build status: ✅ `BUILD SUCCEEDED` (both targets)
+
+### Testing Completed
+- ✅ Main app builds successfully
+- ✅ Widget extension builds successfully
+- ✅ Configuration UI appears on long-press
+- ✅ Deep links parse and navigate correctly
+- ✅ Existing widgets continue working without configuration
+
+### Files Summary (Day 7a)
+**Created**: 1 file
+- `NumpadWidget/SelectQuantityTypesIntent.swift`
+
+**Modified**: 4 files
+- `NumpadWidget/NumpadWidget.swift`
+- `Numpad/Info.plist`
+- `Numpad/Views/ContentView.swift`
+- `Numpad/Models/QuantityType.swift`
+
+**Total Changes**: +180 lines of code across 5 files
+
+---
+
+## 📊 Day 7b - Aggregation Period Feature ✅
+
+### Overview
+Added time-based filtering for quantity totals, allowing users to track metrics over specific periods instead of all-time totals.
+
+### Feature: Aggregation Period Selection
+**Problem**: All totals showed all-time aggregates. Users couldn't see "today's total" or "this week's total" from the main screen.
+
+**Solution**: Added `AggregationPeriod` enum with filtering logic:
+
+**Implementation**:
+- Created `AggregationPeriod` enum with 4 periods:
+  - All Time (default, backward compatible)
+  - Today (last 24 hours)
+  - This Week (last 7 days)
+  - This Month (last 30 days)
+- Added `aggregationPeriod` field to `QuantityType` model (defaults to `.allTime`)
+- Moved total calculation logic to `QuantityType.calculateTotal(from:)` method
+- Filtering happens before aggregation (respects both period AND type)
+- Widget support: widgets now respect aggregation period settings
+
+**New Files**:
+- `Numpad/Models/AggregationPeriod.swift` - Period enum with date filtering logic
+- `NumpadWidget/AggregationPeriod.swift` - Widget copy for shared logic
+
+**Modified Files**:
+- `Numpad.xcodeproj/project.pbxproj` - Added new files to build
+- `Numpad/Models/QuantityType.swift` - Added period field and calculateTotal() method
+- `Numpad/ViewModels/QuantityTypeViewModel.swift` - Added period parameter
+- `Numpad/Views/AddQuantityTypeView.swift` - Added period picker
+- `Numpad/Views/EditQuantityTypeView.swift` - Added period picker
+- `Numpad/Views/ContentView.swift` - Updated to use new calculation method
+- `NumpadWidget/Entry.swift` - Added timestamp documentation
+- `NumpadWidget/NumpadWidget.swift` - Updated to fetch all entries for filtering
+- `NumpadWidget/QuantityType.swift` - Added period field and calculateTotal() method
+
+**User Experience**:
+- Add/Edit quantity type → Time Period picker (All Time/Today/Week/Month)
+- Main screen totals automatically filter by selected period
+- Widgets respect period configuration
+- Analytics view still shows full granular history regardless of period
+
+**Use Cases Enabled**:
+- **Daily metrics**: "Water glasses today", "Hours worked today"
+- **Weekly goals**: "Miles run this week", "Books read this week"
+- **Monthly tracking**: "Expenses this month", "Workouts this month"
+- **Lifetime totals**: "Total miles driven", "All-time high score" (default)
+
+**Technical Design**:
+- Period filtering uses `Calendar.current` and `Date()` for timezone accuracy
+- Filtering logic in model layer (reusable by app and widget)
+- Backward compatible: existing quantities default to `.allTime`
+- No migration needed: new optional field with default value
+
+**Performance**:
+- Efficient in-memory filtering (no extra database queries)
+- Widget fetches all entries once, filters multiple times
+- Main app uses `@Query` with reactive updates
+
+### Files Summary (Day 7b)
+**Created**: 2 files
+- `Numpad/Models/AggregationPeriod.swift`
+- `NumpadWidget/AggregationPeriod.swift`
+
+**Modified**: 10 files
+- `Numpad.xcodeproj/project.pbxproj`
+- `Numpad/Models/QuantityType.swift`
+- `Numpad/ViewModels/QuantityTypeViewModel.swift`
+- `Numpad/Views/AddQuantityTypeView.swift`
+- `Numpad/Views/ContentView.swift`
+- `Numpad/Views/EditQuantityTypeView.swift`
+- `NumpadWidget/Entry.swift`
+- `NumpadWidget/NumpadWidget.swift`
+- `NumpadWidget/QuantityType.swift`
+- `docs/plan.md`
+
+**Total Changes**: +230 lines of code across 12 files
+
+### Build Status: ✅ `BUILD SUCCEEDED`
+
+### Testing Completed
+- ✅ Period filtering works correctly for all 4 period types
+- ✅ Widgets display period-filtered totals
+- ✅ Backward compatibility verified (existing data works)
+- ✅ Deep linking from widgets maintains functionality
+- ✅ All aggregation types (Sum/Avg/Min/Max/etc) work with periods

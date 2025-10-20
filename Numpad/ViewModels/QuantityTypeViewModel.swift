@@ -22,6 +22,7 @@ class QuantityTypeViewModel: ObservableObject {
         name: String,
         valueFormat: ValueFormat,
         aggregationType: AggregationType = .sum,
+        aggregationPeriod: AggregationPeriod = .allTime,
         icon: String = "number",
         colorHex: String = "#007AFF"
     ) -> QuantityType {
@@ -29,6 +30,7 @@ class QuantityTypeViewModel: ObservableObject {
             name: name,
             valueFormat: valueFormat,
             aggregationType: aggregationType,
+            aggregationPeriod: aggregationPeriod,
             icon: icon,
             colorHex: colorHex,
             sortOrder: fetchAllQuantityTypes().count

@@ -8,8 +8,9 @@
 import WidgetKit
 import SwiftUI
 import SwiftData
+import AppIntents
 
-struct Provider: TimelineProvider {
+struct Provider: AppIntentTimelineProvider {
     // Shared container to avoid expensive recreation on every widget refresh
     private static let sharedContainer: ModelContainer? = {
         do {
@@ -27,25 +28,30 @@ struct Provider: TimelineProvider {
     }()
 
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), quantityTypes: [])
+        SimpleEntry(date: Date(), quantityTypes: [], configuration: SelectQuantityTypesIntent())
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), quantityTypes: fetchQuantityTypes(count: widgetCount(for: context.family)))
-        completion(entry)
+    func snapshot(for configuration: SelectQuantityTypesIntent, in context: Context) async -> SimpleEntry {
+        let quantityTypes = fetchQuantityTypes(
+            count: widgetCount(for: context.family),
+            selectedIDs: configuration.effectiveQuantityTypes
+        )
+        return SimpleEntry(date: Date(), quantityTypes: quantityTypes, configuration: configuration)
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+    func timeline(for configuration: SelectQuantityTypesIntent, in context: Context) async -> Timeline<SimpleEntry> {
         let count = widgetCount(for: context.family)
-        let quantityTypes = fetchQuantityTypes(count: count)
+        let quantityTypes = fetchQuantityTypes(
+            count: count,
+            selectedIDs: configuration.effectiveQuantityTypes
+        )
 
         let currentDate = Date()
-        let entry = SimpleEntry(date: currentDate, quantityTypes: quantityTypes)
+        let entry = SimpleEntry(date: currentDate, quantityTypes: quantityTypes, configuration: configuration)
 
         // Refresh every 15 minutes
         let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: currentDate)!
-        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
-        completion(timeline)
+        return Timeline(entries: [entry], policy: .after(nextUpdate))
     }
 
     private func widgetCount(for family: WidgetFamily) -> Int {
@@ -61,8 +67,8 @@ struct Provider: TimelineProvider {
         }
     }
 
-    private func fetchQuantityTypes(count: Int) -> [QuantityTypeData] {
-        print("➡️ Widget: Starting fetchQuantityTypes")
+    private func fetchQuantityTypes(count: Int, selectedIDs: [String]) -> [QuantityTypeData] {
+        print("➡️ Widget: Starting fetchQuantityTypes (count: \(count), selectedIDs: \(selectedIDs.count))")
         // Use shared container for better performance
         guard let container = Self.sharedContainer else {
             print("❌ Widget: ModelContainer not available")
@@ -72,20 +78,43 @@ struct Provider: TimelineProvider {
         do {
             print("➡️ Widget: ModelContainer available, fetching...")
             let context = ModelContext(container)
+
+            // Fetch all non-hidden quantity types
             let descriptor = FetchDescriptor<QuantityType>(
                 predicate: #Predicate { !$0.isHidden },
                 sortBy: [SortDescriptor(\.sortOrder)]
             )
 
-            let quantityTypes = try context.fetch(descriptor)
-            print("➡️ Widget: Fetched \(quantityTypes.count) quantity types")
+            let allQuantityTypes = try context.fetch(descriptor)
+            print("➡️ Widget: Fetched \(allQuantityTypes.count) quantity types")
 
-            return quantityTypes.prefix(count).map { qt in
-                let entries = (qt.entries ?? []).map { $0.value }
-                let total = qt.aggregationType.aggregate(entries)
-                print("  - Processing \(qt.name): \(entries.count) entries, total = \(total)")
+            // Filter based on user selection if provided
+            let filteredQuantityTypes: [QuantityType]
+            if selectedIDs.isEmpty {
+                // No selection = use default behavior (top N by sort order)
+                filteredQuantityTypes = Array(allQuantityTypes.prefix(count))
+                print("➡️ Widget: No selection, using top \(count) by sort order")
+            } else {
+                // User has selected specific types - show those (in selection order, up to count limit)
+                let selectedUUIDs = selectedIDs.compactMap { UUID(uuidString: $0) }
+                filteredQuantityTypes = selectedUUIDs.compactMap { selectedID in
+                    allQuantityTypes.first { $0.id == selectedID }
+                }.prefix(count).map { $0 }
+                print("➡️ Widget: Using \(filteredQuantityTypes.count) user-selected types")
+            }
+
+            // Fetch ALL entries to pass to calculateTotal (for period filtering)
+            let allEntriesDescriptor = FetchDescriptor<NumpadEntry>()
+            let allEntries = (try? context.fetch(allEntriesDescriptor)) ?? []
+
+            return filteredQuantityTypes.map { qt in
+                // Use the new calculateTotal method that respects aggregation period
+                let total = qt.calculateTotal(from: allEntries)
+                let entriesCount = qt.entries?.count ?? 0
+                print("  - Processing \(qt.name): \(entriesCount) entries, total = \(total) (period: \(qt.aggregationPeriod.displayName))")
 
                 return QuantityTypeData(
+                    id: qt.id,
                     name: qt.name,
                     icon: qt.icon,
                     colorHex: qt.colorHex,
@@ -102,7 +131,7 @@ struct Provider: TimelineProvider {
 }
 
 struct QuantityTypeData: Identifiable {
-    let id = UUID()
+    let id: UUID // Actual ID from the QuantityType model
     let name: String
     let icon: String
     let colorHex: String
@@ -118,6 +147,7 @@ struct QuantityTypeData: Identifiable {
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let quantityTypes: [QuantityTypeData]
+    let configuration: SelectQuantityTypesIntent
 }
 
 struct NumpadWidgetEntryView : View {
@@ -157,6 +187,7 @@ struct SmallWidgetView: View {
                     .foregroundColor(Color(hex: qt.colorHex))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .widgetURL(URL(string: "numpad://quantity/\(qt.id.uuidString)"))
         } else {
             VStack {
                 Image(systemName: "plus.circle")
@@ -176,22 +207,24 @@ struct MediumWidgetView: View {
     var body: some View {
         HStack(spacing: 12) {
             ForEach(quantityTypes.prefix(3)) { qt in
-                VStack(spacing: 4) {
-                    Image(systemName: qt.icon)
-                        .font(.title2)
-                        .foregroundColor(Color(hex: qt.colorHex))
+                Link(destination: URL(string: "numpad://quantity/\(qt.id.uuidString)")!) {
+                    VStack(spacing: 4) {
+                        Image(systemName: qt.icon)
+                            .font(.title2)
+                            .foregroundColor(Color(hex: qt.colorHex))
 
-                    Text(qt.name)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                        Text(qt.name)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
 
-                    Text(qt.formattedTotal)
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Color(hex: qt.colorHex))
-                        .lineLimit(1)
+                        Text(qt.formattedTotal)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(Color(hex: qt.colorHex))
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
             }
         }
         .padding()
@@ -204,24 +237,26 @@ struct LargeWidgetView: View {
     var body: some View {
         VStack(spacing: 8) {
             ForEach(quantityTypes.prefix(6)) { qt in
-                HStack {
-                    Image(systemName: qt.icon)
-                        .font(.title3)
-                        .foregroundColor(Color(hex: qt.colorHex))
-                        .frame(width: 30)
+                Link(destination: URL(string: "numpad://quantity/\(qt.id.uuidString)")!) {
+                    HStack {
+                        Image(systemName: qt.icon)
+                            .font(.title3)
+                            .foregroundColor(Color(hex: qt.colorHex))
+                            .frame(width: 30)
 
-                    Text(qt.name)
-                        .font(.subheadline)
-                        .foregroundColor(.primary)
+                        Text(qt.name)
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
 
-                    Spacer()
+                        Spacer()
 
-                    Text(qt.formattedTotal)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: qt.colorHex))
+                        Text(qt.formattedTotal)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Color(hex: qt.colorHex))
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 4)
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 4)
             }
         }
         .padding(.vertical)
@@ -259,7 +294,7 @@ struct NumpadWidget: Widget {
     let kind: String = "NumpadWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+        AppIntentConfiguration(kind: kind, intent: SelectQuantityTypesIntent.self, provider: Provider()) { entry in
             NumpadWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
@@ -272,17 +307,25 @@ struct NumpadWidget: Widget {
 #Preview(as: .systemSmall) {
     NumpadWidget()
 } timeline: {
-    SimpleEntry(date: .now, quantityTypes: [
-        QuantityTypeData(name: "Water", icon: "drop.fill", colorHex: "#007AFF", total: 8, valueFormat: .integer, aggregationType: .sum)
-    ])
+    SimpleEntry(
+        date: .now,
+        quantityTypes: [
+            QuantityTypeData(id: UUID(), name: "Water", icon: "drop.fill", colorHex: "#007AFF", total: 8, valueFormat: .integer, aggregationType: .sum)
+        ],
+        configuration: SelectQuantityTypesIntent()
+    )
 }
 
 #Preview(as: .systemMedium) {
     NumpadWidget()
 } timeline: {
-    SimpleEntry(date: .now, quantityTypes: [
-        QuantityTypeData(name: "Water", icon: "drop.fill", colorHex: "#007AFF", total: 8, valueFormat: .integer, aggregationType: .sum),
-        QuantityTypeData(name: "Reading", icon: "book.fill", colorHex: "#FF9500", total: 120, valueFormat: .duration, aggregationType: .sum),
-        QuantityTypeData(name: "Steps", icon: "figure.walk", colorHex: "#34C759", total: 8542, valueFormat: .integer, aggregationType: .sum)
-    ])
+    SimpleEntry(
+        date: .now,
+        quantityTypes: [
+            QuantityTypeData(id: UUID(), name: "Water", icon: "drop.fill", colorHex: "#007AFF", total: 8, valueFormat: .integer, aggregationType: .sum),
+            QuantityTypeData(id: UUID(), name: "Reading", icon: "book.fill", colorHex: "#FF9500", total: 120, valueFormat: .duration, aggregationType: .sum),
+            QuantityTypeData(id: UUID(), name: "Steps", icon: "figure.walk", colorHex: "#34C759", total: 8542, valueFormat: .integer, aggregationType: .sum)
+        ],
+        configuration: SelectQuantityTypesIntent()
+    )
 }

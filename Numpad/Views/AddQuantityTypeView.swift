@@ -15,6 +15,7 @@ struct AddQuantityTypeView: View {
     @State private var name: String = ""
     @State private var selectedFormat: ValueFormat = .integer
     @State private var selectedAggregationType: AggregationType = .sum
+    @State private var selectedAggregationPeriod: AggregationPeriod = .allTime
     @State private var selectedIcon: String = "number"
     @State private var selectedColorHex: String = "#007AFF"
 
@@ -59,6 +60,12 @@ struct AddQuantityTypeView: View {
                     Picker("Aggregation", selection: $selectedAggregationType) {
                         ForEach(AggregationType.allCases) { aggregation in
                             Text(aggregation.displayName).tag(aggregation)
+                        }
+                    }
+
+                    Picker("Time Period", selection: $selectedAggregationPeriod) {
+                        ForEach(AggregationPeriod.allCases) { period in
+                            Text(period.displayName).tag(period)
                         }
                     }
 
@@ -159,6 +166,7 @@ struct AddQuantityTypeView: View {
                             name: name,
                             valueFormat: selectedFormat,
                             aggregationType: selectedAggregationType,
+                            aggregationPeriod: selectedAggregationPeriod,
                             icon: selectedIcon,
                             colorHex: selectedColorHex
                         )

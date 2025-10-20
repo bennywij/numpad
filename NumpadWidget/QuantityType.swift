@@ -14,12 +14,17 @@ final class QuantityType {
     var name: String = ""
     var valueFormatRawValue: String = ValueFormat.integer.rawValue
     var aggregationTypeRawValue: String = AggregationType.sum.rawValue
+    var aggregationPeriodRawValue: String = AggregationPeriod.allTime.rawValue
     var icon: String = "number"  // SF Symbol name
     var colorHex: String = "#007AFF"
+
+    // Frequently queried fields (SwiftData automatically indexes for predicates)
     var lastUsedAt: Date = Date()
     var createdAt: Date = Date()
     var sortOrder: Int = 0
     var isHidden: Bool = false
+
+    // Compound input configuration (optional)
     var isCompound: Bool = false
     var compoundConfigJSON: String = ""
 
@@ -36,11 +41,17 @@ final class QuantityType {
         set { aggregationTypeRawValue = newValue.rawValue }
     }
 
+    var aggregationPeriod: AggregationPeriod {
+        get { AggregationPeriod(rawValue: aggregationPeriodRawValue) ?? .allTime }
+        set { aggregationPeriodRawValue = newValue.rawValue }
+    }
+
     init(
         id: UUID = UUID(),
         name: String,
         valueFormat: ValueFormat,
         aggregationType: AggregationType = .sum,
+        aggregationPeriod: AggregationPeriod = .allTime,
         icon: String = "number",
         colorHex: String = "#007AFF",
         lastUsedAt: Date = Date(),
@@ -54,6 +65,7 @@ final class QuantityType {
         self.name = name
         self.valueFormatRawValue = valueFormat.rawValue
         self.aggregationTypeRawValue = aggregationType.rawValue
+        self.aggregationPeriodRawValue = aggregationPeriod.rawValue
         self.icon = icon
         self.colorHex = colorHex
         self.lastUsedAt = lastUsedAt
@@ -64,19 +76,35 @@ final class QuantityType {
         self.compoundConfigJSON = compoundConfigJSON
     }
 
+    // MARK: - Total Calculation
+
+    /// Calculate the total based on aggregation type and period
+    /// This filters entries by the configured aggregation period before aggregating
+    func calculateTotal(from allEntries: [NumpadEntry]) -> Double {
+        // Filter entries for this quantity type
+        let myEntries = allEntries.filter { $0.quantityType?.id == self.id }
+
+        // Filter by aggregation period
+        let filteredEntries = aggregationPeriod.filterEntries(myEntries)
+
+        // Extract values and aggregate
+        let values = filteredEntries.map { $0.value }
+        return aggregationType.aggregate(values)
+    }
+
     // MARK: - Compound Configuration Helpers
 
     var compoundConfig: CompoundConfig? {
         get {
             guard isCompound, !compoundConfigJSON.isEmpty else { return nil }
             guard let data = compoundConfigJSON.data(using: .utf8) else {
-                print("⚠️ Widget: Failed to convert compoundConfigJSON to Data for quantity: \(name)")
+                print("⚠️ Failed to convert compoundConfigJSON to Data for quantity: \(name)")
                 return nil
             }
             do {
                 return try JSONDecoder().decode(CompoundConfig.self, from: data)
             } catch {
-                print("⚠️ Widget: Failed to decode CompoundConfig for quantity: \(name), error: \(error)")
+                print("⚠️ Failed to decode CompoundConfig for quantity: \(name), error: \(error)")
                 return nil
             }
         }
@@ -88,16 +116,28 @@ final class QuantityType {
             do {
                 let data = try JSONEncoder().encode(config)
                 guard let json = String(data: data, encoding: .utf8) else {
-                    print("⚠️ Widget: Failed to convert encoded data to string for quantity: \(name)")
+                    print("⚠️ Failed to convert encoded data to string for quantity: \(name)")
                     compoundConfigJSON = ""
                     return
                 }
                 compoundConfigJSON = json
             } catch {
-                print("⚠️ Widget: Failed to encode CompoundConfig for quantity: \(name), error: \(error)")
+                print("⚠️ Failed to encode CompoundConfig for quantity: \(name), error: \(error)")
                 compoundConfigJSON = ""
             }
         }
+    }
+}
+
+// MARK: - Hashable Conformance
+
+extension QuantityType: Hashable {
+    static func == (lhs: QuantityType, rhs: QuantityType) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 

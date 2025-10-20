@@ -17,6 +17,7 @@ struct EditQuantityTypeView: View {
     @State private var name: String
     @State private var selectedFormat: ValueFormat
     @State private var selectedAggregationType: AggregationType
+    @State private var selectedAggregationPeriod: AggregationPeriod
     @State private var selectedIcon: String
     @State private var selectedColorHex: String
     @State private var isHidden: Bool
@@ -29,6 +30,7 @@ struct EditQuantityTypeView: View {
         _name = State(initialValue: quantityType.name)
         _selectedFormat = State(initialValue: quantityType.valueFormat)
         _selectedAggregationType = State(initialValue: quantityType.aggregationType)
+        _selectedAggregationPeriod = State(initialValue: quantityType.aggregationPeriod)
         _selectedIcon = State(initialValue: quantityType.icon)
         _selectedColorHex = State(initialValue: quantityType.colorHex)
         _isHidden = State(initialValue: quantityType.isHidden)
@@ -61,6 +63,12 @@ struct EditQuantityTypeView: View {
                     Picker("Aggregation", selection: $selectedAggregationType) {
                         ForEach(AggregationType.allCases) { aggregation in
                             Text(aggregation.displayName).tag(aggregation)
+                        }
+                    }
+
+                    Picker("Time Period", selection: $selectedAggregationPeriod) {
+                        ForEach(AggregationPeriod.allCases) { period in
+                            Text(period.displayName).tag(period)
                         }
                     }
                 }
@@ -145,6 +153,7 @@ struct EditQuantityTypeView: View {
         quantityType.name = name
         quantityType.valueFormat = selectedFormat
         quantityType.aggregationType = selectedAggregationType
+        quantityType.aggregationPeriod = selectedAggregationPeriod
         quantityType.icon = selectedIcon
         quantityType.colorHex = selectedColorHex
         quantityType.isHidden = isHidden
