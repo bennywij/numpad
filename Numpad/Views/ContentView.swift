@@ -30,6 +30,12 @@ struct ContentView: View {
     // Query ALL entries to trigger view updates when entries change
     @Query private var allEntries: [NumpadEntry]
 
+    // Repository for efficient database queries
+    @State private var repository: QuantityRepository?
+
+    // Cache of calculated totals (keyed by quantity type ID)
+    @State private var totals: [UUID: Double] = [:]
+
     @State private var addEntryFor: QuantityType?
     @State private var showingAddQuantityType = false
     @State private var editQuantityType: QuantityType?
@@ -158,6 +164,12 @@ struct ContentView: View {
                 Text("Unable to export data. Please try again.")
             }
             .task {
+                // Initialize repository for efficient database queries
+                repository = QuantityRepository(modelContext: modelContext)
+
+                // Calculate initial totals
+                recalculateTotals()
+
                 // Seed default quantity types if none exist
                 if allQuantityTypes.isEmpty {
                     let vm = QuantityTypeViewModel(modelContext: modelContext)
@@ -179,6 +191,14 @@ struct ContentView: View {
                     // Clear the deep link ID after handling
                     deepLinkQuantityID = nil
                 }
+            }
+            .onChange(of: allEntries.count) { _, _ in
+                // Recalculate totals when entries are added/removed
+                recalculateTotals()
+            }
+            .onChange(of: visibleQuantityTypes.count) { _, _ in
+                // Recalculate totals when quantity types are added/removed
+                recalculateTotals()
             }
         }
     }
@@ -384,10 +404,21 @@ struct ContentView: View {
 
     // MARK: - Helper Methods
 
-    /// Calculate total for a quantity type from all entries
-    /// This now uses the quantity type's aggregation period to filter entries
+    /// Calculate total for a quantity type using database-level filtering
+    /// Returns cached value or 0 if not yet calculated
     private func calculateTotal(for quantityType: QuantityType) -> Double {
-        return quantityType.calculateTotal(from: allEntries)
+        return totals[quantityType.id] ?? 0
+    }
+
+    /// Recalculate all totals using the repository
+    private func recalculateTotals() {
+        guard let repo = repository else { return }
+
+        var newTotals: [UUID: Double] = [:]
+        for quantityType in visibleQuantityTypes {
+            newTotals[quantityType.id] = repo.calculateTotal(for: quantityType)
+        }
+        totals = newTotals
     }
 
     private func deleteQuantityTypes(at offsets: IndexSet) {
