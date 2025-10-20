@@ -95,6 +95,7 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		85427FC62EA2079B0052426E /* Utilities */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); name = Utilities; path = Numpad/Utilities; sourceTree = "<group>"; };
+		859059C12EA6D262007EFFA7 /* Repositories */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Repositories; sourceTree = "<group>"; };
 		85E4917E2EA09B250040BD3A /* NumpadWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = NumpadWidget; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -143,6 +144,7 @@
 				A10000006A /* Assets.xcassets */,
 				8512A5642EA0B49A008D893B /* numpad-glass-icon.icon */,
 				A10000026A /* Info.plist */,
+				859059C12EA6D262007EFFA7 /* Repositories */,
 			);
 			path = Numpad;
 			sourceTree = "<group>";
@@ -253,6 +255,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				85427FC62EA2079B0052426E /* Utilities */,
+				859059C12EA6D262007EFFA7 /* Repositories */,
 			);
 			name = Numpad;
 			productName = Numpad;
