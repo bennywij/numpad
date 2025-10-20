@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 
 enum AggregationPeriod: String, Codable, CaseIterable, Identifiable {
     case allTime
@@ -52,9 +53,7 @@ enum AggregationPeriod: String, Codable, CaseIterable, Identifiable {
 
         case .daily:
             // Return entries from the start of today to now
-            guard let startOfDay = calendar.startOfDay(for: date) as Date? else {
-                return entries
-            }
+            let startOfDay = calendar.startOfDay(for: date)
             return entries.filter { entry in
                 entry.timestamp >= startOfDay
             }
@@ -74,6 +73,41 @@ enum AggregationPeriod: String, Codable, CaseIterable, Identifiable {
                 return entries
             }
             return entries.filter { entry in
+                entry.timestamp >= startOfMonth
+            }
+        }
+    }
+
+    /// Returns a SwiftData predicate for database-level filtering
+    /// Returns nil for .allTime (no filtering needed)
+    /// - Parameter date: The reference date for period calculation (defaults to now)
+    /// - Returns: A Predicate for filtering NumpadEntry, or nil if no filtering needed
+    func predicate(relativeTo date: Date = Date()) -> Predicate<NumpadEntry>? {
+        let calendar = Calendar.current
+
+        switch self {
+        case .allTime:
+            return nil // No filtering needed
+
+        case .daily:
+            let startOfDay = calendar.startOfDay(for: date)
+            return #Predicate<NumpadEntry> { entry in
+                entry.timestamp >= startOfDay
+            }
+
+        case .weekly:
+            guard let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: date)?.start else {
+                return nil
+            }
+            return #Predicate<NumpadEntry> { entry in
+                entry.timestamp >= startOfWeek
+            }
+
+        case .monthly:
+            guard let startOfMonth = calendar.dateInterval(of: .month, for: date)?.start else {
+                return nil
+            }
+            return #Predicate<NumpadEntry> { entry in
                 entry.timestamp >= startOfMonth
             }
         }

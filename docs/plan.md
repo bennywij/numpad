@@ -1049,3 +1049,404 @@ Added time-based filtering for quantity totals, allowing users to track metrics 
 - ✅ Backward compatibility verified (existing data works)
 - ✅ Deep linking from widgets maintains functionality
 - ✅ All aggregation types (Sum/Avg/Min/Max/etc) work with periods
+
+---
+
+## 🔧 Day 8 - Performance & Architecture Improvements (Gemini Code Review)
+
+### Code Review Summary
+**Overall Score: 6/10** → Target: **8.5/10**
+
+A comprehensive code review using Gemini identified critical performance issues that will cause memory problems and crashes with larger datasets. While the architecture is solid, the "fetch all, filter in-memory" pattern needs to be replaced with predicate-based database queries.
+
+### Critical Issues Identified
+1. **Memory Performance** - Fetching all entries into memory (will crash widget with 100k+ entries)
+2. **Data Corruption** - Duplicate UUIDs appearing (should be impossible)
+3. **Inefficient Widget** - Fetches everything every 15 minutes
+4. **Unsafe Relationships** - Relying on lazy loading instead of explicit fetches
+5. **Inefficient Queries** - Fetching all just to count or get max values
+
+### Phased Implementation Plan
+
+**Guiding Principles**:
+- One phase at a time with full testing between phases
+- Each phase is independently testable and committable
+- No regressions - all existing features must continue working
+- Validate design with Gemini before coding
+- User verification before each commit
+
+---
+
+#### Phase 1: Foundation - Add Predicate Support to AggregationPeriod ✅ SAFE
+**Risk Level**: LOW (Pure addition, no breaking changes)
+
+**Changes**:
+1. Add `predicate(relativeTo:)` method to `AggregationPeriod` enum
+2. Fix unnecessary type casting (`as Date?`)
+3. Add comprehensive unit tests for predicate generation
+4. Widget and main app continue using existing `filterEntries()` method
+
+**Files Modified**:
+- `Numpad/Models/AggregationPeriod.swift` - Add predicate method
+- `NumpadWidget/AggregationPeriod.swift` - Add predicate method
+
+**Testing**:
+- [ ] Build succeeds for both targets
+- [ ] All existing functionality works unchanged
+- [ ] No regressions in widget display
+- [ ] Predicates generate correct date ranges for all periods
+- [ ] Test at timezone boundaries (midnight, week start, month start)
+
+**Success Criteria**:
+- ✅ Code compiles without warnings
+- ✅ Existing tests pass
+- ✅ New predicates tested manually with sample data
+- ✅ No behavioral changes to app or widget
+
+**Rollback Plan**: Simple - remove the new method
+
+---
+
+#### Phase 2: Repository Layer - Create Infrastructure ✅ SAFE
+**Risk Level**: LOW (New code, no changes to existing)
+
+**Changes**:
+1. Create `Numpad/Repositories/QuantityRepository.swift`
+2. Implement predicate-based `calculateTotal(for:)` method
+3. Implement predicate-based `fetchEntries(for:limit:)` method
+4. Add error logging and diagnostics
+5. Add helper method to combine predicates
+
+**New Files**:
+- `Numpad/Repositories/QuantityRepository.swift`
+
+**Files Modified**:
+- `Numpad.xcodeproj/project.pbxproj` - Add new file to build
+
+**Testing**:
+- [ ] Build succeeds
+- [ ] Repository can be instantiated with ModelContext
+- [ ] calculateTotal() returns correct values
+- [ ] fetchEntries() returns filtered/sorted results
+- [ ] Predicate combination logic works correctly
+- [ ] Test with different aggregation types (Sum, Avg, Min, Max)
+- [ ] Test with different aggregation periods (All Time, Daily, Weekly, Monthly)
+
+**Success Criteria**:
+- ✅ Repository methods produce same results as existing code
+- ✅ All edge cases handled (no entries, nil relationships, etc.)
+- ✅ Error logging shows meaningful messages
+
+**Rollback Plan**: Simply don't use the repository yet - it's new code
+
+---
+
+#### Phase 3: Main App Migration - ContentView ⚠️ MODERATE RISK
+**Risk Level**: MODERATE (Changes core UI logic)
+
+**Changes**:
+1. Remove `@Query private var allEntries: [NumpadEntry]` from ContentView
+2. Add `@State private var repository: QuantityRepository?`
+3. Add `@State private var totals: [UUID: Double] = [:]`
+4. Initialize repository in `.task` modifier
+5. Update `calculateTotal(for:)` to use repository
+6. Add `.onChange(of: visibleQuantityTypes)` to recalculate totals
+7. Keep de-duplication logic for now (investigate separately)
+
+**Files Modified**:
+- `Numpad/Views/ContentView.swift`
+
+**Testing**:
+- [ ] Build succeeds
+- [ ] Main screen displays correct totals
+- [ ] Quick Add section works
+- [ ] Adding new entry updates totals immediately
+- [ ] Editing quantity type updates display
+- [ ] Hiding/unhiding quantities works
+- [ ] Drag to reorder works
+- [ ] Delete works
+- [ ] Deep linking from widget still works
+- [ ] CSV export still works
+- [ ] No performance regression (should be faster!)
+
+**Success Criteria**:
+- ✅ All UI interactions work identically to before
+- ✅ Totals match previous calculations exactly
+- ✅ Memory usage is lower (verify with Xcode Instruments)
+- ✅ No visual glitches or flickering
+
+**Rollback Plan**: Git revert to previous commit
+
+---
+
+#### Phase 4: Analytics View Migration ⚠️ MODERATE RISK
+**Risk Level**: MODERATE (Changes analytics calculations)
+
+**Changes**:
+1. Make `AnalyticsViewModel.modelContext` non-optional
+2. Remove `setModelContext()` method
+3. Update `calculateTotal()` to use explicit FetchDescriptor
+4. Update `calculateGroupedTotals()` to use explicit FetchDescriptor
+5. Add error handling with logging
+6. Ensure all initializations pass modelContext
+
+**Files Modified**:
+- `Numpad/ViewModels/AnalyticsViewModel.swift`
+- `Numpad/Views/AnalyticsView.swift` - Update initialization
+
+**Testing**:
+- [ ] Build succeeds
+- [ ] Analytics view displays correct totals
+- [ ] All grouping periods work (Day/Week/Month/Year/All Time)
+- [ ] All aggregation types work (Sum/Avg/Median/Min/Max/Count)
+- [ ] Navigation to History works
+- [ ] Grouped totals show correct counts and values
+- [ ] Performance is acceptable with large datasets
+
+**Success Criteria**:
+- ✅ Analytics calculations match previous results exactly
+- ✅ All grouping combinations work correctly
+- ✅ No crashes or errors with edge cases (empty data, single entry)
+- ✅ Error messages are clear and actionable
+
+**Rollback Plan**: Git revert to previous commit
+
+---
+
+#### Phase 5: Widget Migration ⚠️ HIGH RISK
+**Risk Level**: HIGH (Memory-constrained environment)
+
+**Changes**:
+1. Remove `let allEntriesDescriptor = FetchDescriptor<NumpadEntry>()`
+2. Create `calculateTotalForWidget(quantityType:in:)` helper method
+3. Use predicate-based fetching for each quantity type
+4. Add memory pressure handling
+5. Add detailed logging for debugging
+6. Consider adding caching layer (optional)
+
+**Files Modified**:
+- `NumpadWidget/NumpadWidget.swift`
+
+**Testing**:
+- [ ] Widget extension builds successfully
+- [ ] Widget displays on home screen (all sizes: Small/Medium/Large)
+- [ ] Widget shows correct totals matching main app
+- [ ] Widget refreshes every 15 minutes
+- [ ] Widget configuration (selecting quantities) works
+- [ ] Deep linking from widget to analytics works
+- [ ] Widget respects aggregation periods
+- [ ] Test with 100, 1,000, 10,000 entries
+- [ ] Monitor memory usage (should be significantly lower)
+- [ ] Test on real device (not just simulator)
+
+**Success Criteria**:
+- ✅ Widget displays identical data to main app
+- ✅ Memory usage is significantly reduced
+- ✅ No widget crashes with large datasets
+- ✅ Widget timeline updates work correctly
+- ✅ All three widget sizes work
+
+**Rollback Plan**: Git revert to previous commit
+
+---
+
+#### Phase 6: ViewModel Optimizations ✅ SAFE
+**Risk Level**: LOW (Targeted improvements)
+
+**Changes**:
+1. Fix `QuantityTypeViewModel.createQuantityType()` sortOrder calculation
+   - Use `max(sortOrder)` query instead of fetching all
+2. Fix `EntryViewModel.fetchEntries()` to use explicit FetchDescriptor
+   - Remove reliance on lazy relationship loading
+3. Add error logging to all ViewModel methods
+4. Replace `try?` with proper error handling
+
+**Files Modified**:
+- `Numpad/ViewModels/QuantityTypeViewModel.swift`
+- `Numpad/ViewModels/EntryViewModel.swift`
+
+**Testing**:
+- [ ] Build succeeds
+- [ ] Creating new quantity types assigns correct sortOrder
+- [ ] Fetching entry history works correctly
+- [ ] All CRUD operations work
+- [ ] Error messages appear when operations fail
+- [ ] No regressions in any views using these ViewModels
+
+**Success Criteria**:
+- ✅ SortOrder is sequential and correct
+- ✅ Entry history displays properly sorted
+- ✅ Errors are logged and displayed to user
+- ✅ Performance is same or better
+
+**Rollback Plan**: Git revert to previous commit
+
+---
+
+#### Phase 7: Code Quality & Cleanup ✅ SAFE
+**Risk Level**: VERY LOW (Cosmetic changes)
+
+**Changes**:
+1. Extract ModelContainer creation to shared utility
+   - Create `Shared/ModelContainerFactory.swift`
+   - Use in Widget and SelectQuantityTypesIntent
+2. Extract widget refresh interval to constant
+3. Remove `@Query private var allQuantityTypes` if unused
+4. Add database integrity check (optional, debug builds only)
+5. Update code documentation
+
+**New Files**:
+- `Shared/ModelContainerFactory.swift`
+
+**Files Modified**:
+- `NumpadWidget/NumpadWidget.swift`
+- `NumpadWidget/SelectQuantityTypesIntent.swift`
+- `Numpad/Views/ContentView.swift`
+
+**Testing**:
+- [ ] Build succeeds for all targets
+- [ ] Widget continues to work
+- [ ] Siri shortcuts continue to work
+- [ ] No functional changes to any feature
+
+**Success Criteria**:
+- ✅ Code is cleaner and more maintainable
+- ✅ No duplication of ModelContainer logic
+- ✅ All features work identically
+
+**Rollback Plan**: Git revert if any issues
+
+---
+
+#### Phase 8: Investigation - Duplicate UUIDs 🔍 DIAGNOSTIC
+**Risk Level**: N/A (Investigation only)
+
+**Approach**:
+1. Add comprehensive logging to QuantityType CRUD operations
+2. Add database integrity check on app launch (debug builds)
+3. Monitor CloudKit sync operations
+4. Check for race conditions in concurrent saves
+5. Create minimal reproduction case if possible
+6. Document findings in plan.md
+
+**Files Modified**:
+- `Numpad/ViewModels/QuantityTypeViewModel.swift` - Add diagnostic logging
+- `Numpad/Views/ContentView.swift` - Add integrity check
+
+**Testing**:
+- [ ] Enable diagnostic logging
+- [ ] Run app with fresh database
+- [ ] Trigger CloudKit sync across two devices
+- [ ] Attempt to reproduce duplicates
+- [ ] Analyze logs for patterns
+
+**Outcome**:
+- Document root cause
+- Determine if it's CloudKit sync issue, race condition, or data corruption
+- Implement fix in separate phase if needed
+
+---
+
+### Performance Testing Plan
+
+After each phase, verify:
+
+1. **Memory Usage** (Xcode Instruments - Allocations)
+   - Baseline: Current implementation
+   - Target: <50% of baseline for large datasets
+   - Test datasets: 100, 1,000, 10,000, 100,000 entries
+
+2. **CPU Performance** (Xcode Instruments - Time Profiler)
+   - ContentView rendering time
+   - Widget timeline generation time
+   - Analytics calculation time
+
+3. **Database Performance**
+   - Query execution time
+   - Number of database round-trips
+   - Index effectiveness
+
+4. **Widget Stability**
+   - Memory usage in widget extension
+   - Timeline refresh success rate
+   - Widget crash logs
+
+### Regression Testing Checklist
+
+After each phase, verify ALL of these work:
+- [ ] Main screen displays quantity types
+- [ ] Quick Add section works
+- [ ] Adding entries works (integer/decimal/duration)
+- [ ] Compound inputs work correctly
+- [ ] Editing quantity types works
+- [ ] Hiding/unhiding quantities works
+- [ ] Drag-to-reorder works
+- [ ] Delete entries works
+- [ ] Delete quantity types works
+- [ ] Analytics view displays correctly
+- [ ] All grouping periods work (Day/Week/Month/Year/All Time)
+- [ ] All aggregation types work (Sum/Avg/Median/Min/Max/Count)
+- [ ] All aggregation periods work (All Time/Daily/Weekly/Monthly)
+- [ ] History view displays entries
+- [ ] Editing entries works
+- [ ] CSV export works
+- [ ] Widget displays on home screen (Small/Medium/Large)
+- [ ] Widget configuration works (selecting quantities)
+- [ ] Widget deep linking works (tap → analytics)
+- [ ] Siri shortcuts work
+- [ ] CloudKit sync works (if available)
+- [ ] Data persists across app restarts
+
+### Validation Strategy
+
+**Before Each Phase**:
+1. Write design document for the phase
+2. Run design by `gemini -p` for validation
+3. Address any concerns raised
+4. Get user approval to proceed
+
+**During Implementation**:
+1. Code changes as specified
+2. Build and fix any compiler errors
+3. Run manual testing checklist
+4. Document any issues encountered
+
+**After Each Phase**:
+1. User verification and testing
+2. Performance measurement if applicable
+3. Git commit with detailed message
+4. Update plan.md with completion status
+
+### Expected Outcomes
+
+**After All Phases Complete**:
+- Code Quality Score: **6/10 → 8.5/10**
+- Memory Usage: **Reduced by 50-90%** for large datasets
+- Widget Stability: **No crashes** with 100k+ entries
+- Query Performance: **10-100x faster** for filtered queries
+- Code Maintainability: **Significantly improved**
+- Test Coverage: **Comprehensive regression tests**
+
+### Estimated Timeline
+
+- Phase 1: 30 minutes (code) + 15 minutes (test) = 45 min
+- Phase 2: 1 hour (code) + 30 minutes (test) = 1.5 hours
+- Phase 3: 1 hour (code) + 45 minutes (test) = 1.75 hours
+- Phase 4: 45 minutes (code) + 30 minutes (test) = 1.25 hours
+- Phase 5: 1.5 hours (code) + 1 hour (test) = 2.5 hours
+- Phase 6: 45 minutes (code) + 30 minutes (test) = 1.25 hours
+- Phase 7: 30 minutes (code) + 15 minutes (test) = 45 min
+- Phase 8: 2 hours (investigation) = 2 hours
+
+**Total: ~11 hours** (can be split across multiple sessions)
+
+---
+
+## 📋 Current Status: Ready for Phase 1
+
+**Next Steps**:
+1. Validate Phase 1 design with Gemini
+2. Implement Phase 1 changes
+3. User testing and verification
+4. Git commit Phase 1
+5. Proceed to Phase 2
