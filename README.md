@@ -1,6 +1,6 @@
 # Numpad
 
-A frictionless iOS app for tracking quantities with timestamps.
+A frictionless iOS app for tracking quantities with timestamps. Built with Claude Code.
 
 ## Features
 
