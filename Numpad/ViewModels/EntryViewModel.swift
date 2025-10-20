@@ -12,11 +12,13 @@ import WidgetKit
 @MainActor
 class EntryViewModel: ObservableObject {
     private let modelContext: ModelContext
+    private let repository: QuantityRepository
     @Published var lastError: Error?
     @Published var errorMessage: String?
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+        self.repository = QuantityRepository(modelContext: modelContext)
     }
 
     func addEntry(value: Double, to quantityType: QuantityType, timestamp: Date = Date(), notes: String = "") {
@@ -62,12 +64,7 @@ class EntryViewModel: ObservableObject {
     }
 
     func fetchEntries(for quantityType: QuantityType) -> [NumpadEntry] {
-        // Use the relationship to get entries - SwiftData optimizes this
-        guard let entries = quantityType.entries else {
-            return []
-        }
-
-        // Sort by timestamp descending
-        return entries.sorted { $0.timestamp > $1.timestamp }
+        // Use repository for efficient database-level query with sorting
+        return repository.fetchEntries(for: quantityType)
     }
 }
