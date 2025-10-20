@@ -39,52 +39,35 @@ struct GroupedTotal: Identifiable {
 @MainActor
 class AnalyticsViewModel: ObservableObject {
     private var modelContext: ModelContext?
+    private var repository: QuantityRepository?
 
     init(modelContext: ModelContext?) {
         self.modelContext = modelContext
+        if let context = modelContext {
+            self.repository = QuantityRepository(modelContext: context)
+        }
     }
 
     /// Set or update the modelContext (needed for @StateObject initialization workaround)
     func setModelContext(_ context: ModelContext) {
         self.modelContext = context
+        self.repository = QuantityRepository(modelContext: context)
     }
 
     func calculateTotal(for quantityType: QuantityType) -> Double {
-        guard let modelContext = modelContext else { return 0 }
-
-        // CRITICAL FIX: Don't rely on relationship loading - fetch entries explicitly
-        let quantityTypeID = quantityType.id
-        let descriptor = FetchDescriptor<NumpadEntry>(
-            predicate: #Predicate<NumpadEntry> { entry in
-                entry.quantityType?.id == quantityTypeID
-            }
-        )
-
-        guard let entries = try? modelContext.fetch(descriptor) else {
-            return 0
-        }
-
-        let values = entries.map { $0.value }
-        return quantityType.aggregationType.aggregate(values)
+        // Use repository for efficient database-level filtering
+        guard let repo = repository else { return 0 }
+        return repo.calculateTotal(for: quantityType)
     }
 
     func calculateGroupedTotals(
         for quantityType: QuantityType,
         groupedBy period: GroupingPeriod
     ) -> [GroupedTotal] {
-        guard let modelContext = modelContext else { return [] }
+        // Use repository for efficient database-level querying
+        guard let repo = repository else { return [] }
 
-        // CRITICAL FIX: Fetch entries explicitly instead of relying on relationship
-        let quantityTypeID = quantityType.id
-        let descriptor = FetchDescriptor<NumpadEntry>(
-            predicate: #Predicate<NumpadEntry> { entry in
-                entry.quantityType?.id == quantityTypeID
-            }
-        )
-
-        guard let entries = try? modelContext.fetch(descriptor) else {
-            return []
-        }
+        let entries = repo.fetchEntries(for: quantityType)
 
         if period == .all {
             let values = entries.map { $0.value }
