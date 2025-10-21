@@ -78,8 +78,11 @@ final class QuantityType {
 
     // MARK: - Total Calculation
 
-    /// Calculate the total based on aggregation type and period
-    /// This filters entries by the configured aggregation period before aggregating
+    /// **DEPRECATED**: Use QuantityRepository.calculateTotal(for:) instead for efficient database-level filtering.
+    ///
+    /// This method loads ALL entries into memory before filtering - very inefficient for large datasets.
+    /// The repository pattern uses database predicates for optimal performance.
+    @available(*, deprecated, message: "Use QuantityRepository.calculateTotal(for:) for efficient database-level queries")
     func calculateTotal(from allEntries: [NumpadEntry]) -> Double {
         // Filter entries for this quantity type
         let myEntries = allEntries.filter { $0.quantityType?.id == self.id }
