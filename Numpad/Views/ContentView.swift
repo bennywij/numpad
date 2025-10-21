@@ -62,16 +62,8 @@ struct ContentView: View {
 
     // Main list of quantities to render - ALWAYS show ALL visible quantities
     // Quick Add is just a convenient shortcut, not a replacement
-    // De-duplicate by ID in case there's corrupt data in the database
     private var mainListQuantities: [QuantityType] {
-        var seen = Set<UUID>()
-        return visibleQuantityTypes.filter { quantityType in
-            let isNew = seen.insert(quantityType.id).inserted
-            if !isNew {
-                print("⚠️ Duplicate ID detected: \(quantityType.id) for \(quantityType.name)")
-            }
-            return isNew
-        }
+        visibleQuantityTypes
     }
 
     var body: some View {
@@ -284,18 +276,6 @@ struct ContentView: View {
 
     // MARK: - Hidden Quantities Section
 
-    // De-duplicated hidden quantities
-    private var uniqueHiddenQuantities: [QuantityType] {
-        var seen = Set<UUID>()
-        return hiddenQuantityTypes.filter { quantityType in
-            let isNew = seen.insert(quantityType.id).inserted
-            if !isNew {
-                print("⚠️ Duplicate hidden ID detected: \(quantityType.id) for \(quantityType.name)")
-            }
-            return isNew
-        }
-    }
-
     private var hiddenQuantitiesSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Divider()
@@ -312,7 +292,7 @@ struct ContentView: View {
                     .padding(.horizontal, 16)
 
                 VStack(spacing: 8) {
-                    ForEach(uniqueHiddenQuantities) { quantityType in
+                    ForEach(hiddenQuantityTypes) { quantityType in
                         Button {
                             editQuantityType = quantityType
                         } label: {
@@ -466,18 +446,12 @@ struct ContentView: View {
         print("   Total entries: \(allEntries.count)")
         print("   Total quantity types: \(allQuantityTypes.count)")
 
-        // Check for duplicates before deleting
-        let uniqueIDs = Set(allQuantityTypes.map { $0.id })
-        if uniqueIDs.count < allQuantityTypes.count {
-            print("⚠️ Found \(allQuantityTypes.count - uniqueIDs.count) duplicate quantity types!")
-        }
-
         // Delete all entries first (to maintain referential integrity)
         for entry in allEntries {
             modelContext.delete(entry)
         }
 
-        // Delete all quantity types (including duplicates)
+        // Delete all quantity types
         for quantityType in allQuantityTypes {
             modelContext.delete(quantityType)
         }
