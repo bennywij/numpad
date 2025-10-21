@@ -45,6 +45,9 @@ struct ContentView: View {
     @State private var navigationPath = NavigationPath()
     @State private var deepLinkQuantityID: UUID?
 
+    // User preference: should widget tap open entry card or analytics?
+    @AppStorage("widgetOpensEntryCard") private var widgetOpensEntryCard = true
+
     // MARK: - Computed Properties
 
     // Most recently used visible quantity (for Quick Add)
@@ -100,18 +103,25 @@ struct ContentView: View {
             }
             .navigationTitle("Numpad")
             .toolbar {
-                #if DEBUG
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(role: .destructive) {
-                        showingResetConfirmation = true
+                    Menu {
+                        Toggle("Widget Opens Entry Card", isOn: $widgetOpensEntryCard)
+
+                        #if DEBUG
+                        Divider()
+
+                        Button(role: .destructive) {
+                            showingResetConfirmation = true
+                        } label: {
+                            Label("Delete All Data", systemImage: "trash")
+                        }
+                        #endif
                     } label: {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
+                        Image(systemName: "ellipsis.circle")
                     }
-                    .accessibilityLabel("Reset all data")
-                    .accessibilityHint("Delete all quantity types and entries (Debug only)")
+                    .accessibilityLabel("Settings")
+                    .accessibilityHint("Access app settings and options")
                 }
-                #endif
 
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -176,9 +186,16 @@ struct ContentView: View {
             }
             .onChange(of: deepLinkQuantityID) { oldValue, newValue in
                 if let quantityID = newValue {
-                    // Find the quantity type and navigate to it
+                    // Find the quantity type
                     if let quantityType = allQuantityTypes.first(where: { $0.id == quantityID }) {
-                        navigationPath.append(quantityType)
+                        // Check user preference for widget tap behavior
+                        if widgetOpensEntryCard {
+                            // Open entry card for quick data entry
+                            addEntryFor = quantityType
+                        } else {
+                            // Navigate to analytics view
+                            navigationPath.append(quantityType)
+                        }
                     }
                     // Clear the deep link ID after handling
                     deepLinkQuantityID = nil

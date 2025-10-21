@@ -1789,3 +1789,129 @@ final class QuantityType {
 - Architecture: Modern repository pattern throughout
 
 **Next Recommendation**: Add database indexes for optimal performance (see Gemini review above)
+
+---
+
+## 🎛️ Widget Behavior Settings (October 21, 2025) ✅
+
+### Overview
+Added user-configurable widget tap behavior and consolidated debug features into a settings menu.
+
+### Features Implemented
+
+**1. Widget Tap Behavior Toggle**
+- New `@AppStorage("widgetOpensEntryCard")` setting (default: `true`)
+- **ON (default)**: Tapping widget opens entry card for quick data entry
+- **OFF**: Tapping widget navigates to analytics view (original behavior)
+- Seamless integration with existing deep link handler
+
+**2. Settings Menu UI**
+- Replaced debug-only trash button with ellipsis menu (⋯) in navigation bar
+- Menu contains:
+  - **Toggle**: "Widget Opens Entry Card" (persisted via AppStorage)
+  - **Divider** (debug-only section)
+  - **Destructive Action**: "Delete All Data" (debug builds only, with confirmation dialog)
+
+**3. Deep Link Handler Update**
+- Modified `onChange(of: deepLinkQuantityID)` to respect user preference
+- Checks `widgetOpensEntryCard` setting before handling deep link
+- Entry card path: Sets `addEntryFor = quantityType`
+- Analytics path: Uses `navigationPath.append(quantityType)`
+
+### Implementation Details
+
+**Files Modified**:
+- `Numpad/Views/ContentView.swift` (3 sections updated)
+  - Added `@AppStorage` property (line 49)
+  - Replaced toolbar button with Menu (lines 106-124)
+  - Updated deep link handler logic (lines 185-201)
+
+**Code Changes**:
+```swift
+// New setting with persistence
+@AppStorage("widgetOpensEntryCard") private var widgetOpensEntryCard = true
+
+// Ellipsis menu in toolbar
+Menu {
+    Toggle("Widget Opens Entry Card", isOn: $widgetOpensEntryCard)
+
+    #if DEBUG
+    Divider()
+    Button(role: .destructive) {
+        showingResetConfirmation = true
+    } label: {
+        Label("Delete All Data", systemImage: "trash")
+    }
+    #endif
+} label: {
+    Image(systemName: "ellipsis.circle")
+}
+
+// Deep link handler respects setting
+if widgetOpensEntryCard {
+    addEntryFor = quantityType  // Quick entry
+} else {
+    navigationPath.append(quantityType)  // Analytics
+}
+```
+
+### User Experience
+
+**Accessing Settings**:
+1. Tap ⋯ button in top-left corner of main screen
+2. Toggle "Widget Opens Entry Card" on/off
+3. Setting persists across app restarts (AppStorage)
+
+**Widget Behavior**:
+- **Default (ON)**: Tap widget → Entry card opens → Log value → Done
+- **Optional (OFF)**: Tap widget → Analytics view → View trends
+
+**Debug Menu (Development Only)**:
+- "Delete All Data" only visible in `#if DEBUG` builds
+- Confirmation dialog prevents accidental deletion
+- Production builds: Menu only contains the widget toggle
+
+### Technical Design Choices
+
+**Why AppStorage?**
+- Automatic persistence to UserDefaults
+- SwiftUI property wrapper with reactive updates
+- Thread-safe across views
+- No boilerplate for saving/loading
+
+**Why Default ON?**
+- User feedback indicated entry card is more useful
+- Aligns with "frictionless input" core value prop
+- Analytics is still one tap away from entry card
+- Power users can toggle off if they prefer analytics-first workflow
+
+**Why Ellipsis Menu vs. Dedicated Settings Screen?**
+- Single, rarely-changed setting doesn't warrant full screen
+- Keeps UI minimal and uncluttered
+- Native iOS pattern (Settings app uses ellipsis menus)
+- Easy to add more settings later if needed
+
+### Safety Considerations
+- ✅ No schema changes (pure UI/logic update)
+- ✅ AppStorage is thread-safe
+- ✅ Debug-only features properly gated with `#if DEBUG`
+- ✅ Existing confirmation dialog preserved for destructive actions
+- ✅ No breaking changes to widget deep link URLs
+- ✅ Backward compatible (defaults to user-preferred behavior)
+
+### Testing Completed
+- ✅ Build succeeds with no warnings
+- ✅ Widget tap opens entry card when setting ON
+- ✅ Widget tap opens analytics when setting OFF
+- ✅ Setting persists across app restarts
+- ✅ Delete all data works from new menu location
+- ✅ Menu only shows toggle in production builds
+- ✅ Menu shows both toggle and delete in debug builds
+
+### Commit
+**Hash**: TBD
+**Message**: "Add widget behavior settings and consolidate debug menu"
+
+---
+
+**Current App Status**: Production-ready with enhanced UX customization
