@@ -1919,6 +1919,131 @@ if widgetOpensEntryCard {
 
 ---
 
+## ⌨️ Day 9 - iPad Keyboard Shortcuts & Visual Enhancements ✅
+
+### Overview
+Implemented comprehensive keyboard shortcuts and visual feedback for iPad users, plus iPad pointer support.
+
+### Features Implemented
+
+**1. Visual Focus Indicators**
+- Colored border appears on focused quantity card (matches quantity's color)
+- Increased background opacity on focus (0.06 → 0.12)
+- Smooth animations when focus changes (0.2s easeInOut)
+- Compatible with keyboard navigation (arrow keys, Tab)
+
+**2. iPad Pointer Hover Effects**
+- Cards scale to 1.02x on pointer hover
+- Background opacity increases on hover
+- Smooth 0.15s animation
+- Uses `.onHover` modifier for iPad pointer detection
+
+**3. Keyboard Navigation**
+- **Up/Down Arrows**: Navigate between quantity cards
+- **Tab/Shift+Tab**: Alternative navigation (same as arrows)
+- **Return**: Quick add entry to focused quantity
+- **Escape**: Dismiss any open sheet/modal
+- **Cmd+N**: New quantity type
+- **Cmd+E**: Add entry to focused quantity
+- **CMD+/**: Show/hide keyboard shortcuts help
+
+**4. Keyboard Shortcuts Help Dialog**
+- New `KeyboardShortcutsHelpView` showing all shortcuts
+- Organized by category (Quantity Management, Navigation, General)
+- Accessible via CMD+/ or menu
+- Native iOS design with NavigationStack
+
+### Implementation Details
+
+**Files Created**:
+- `Numpad/Views/Components/KeyboardShortcutsHelpView.swift` - Help dialog view
+
+**Files Modified**:
+- `Numpad/NumpadApp.swift` - Added CommandMenu with all keyboard shortcuts
+- `Numpad/Utilities/FocusedValues.swift` - Added FocusedValue keys for keyboard commands
+- `Numpad/Views/Components/QuantityTypeCard.swift` - Visual focus and hover effects
+- `Numpad/Views/Components/QuantityTypeRow.swift` - Pass focus state to card
+- `Numpad/Views/ContentView.swift` - Focus tracking, helper methods, custom ViewModifier
+- `Numpad.xcodeproj/project.pbxproj` - Added new file to build
+
+**Architecture**:
+- Used SwiftUI's `@FocusedValue` system for Scene-View communication
+- Created custom `ViewModifier` to reduce type-checking complexity
+- Helper method `isFocused(_ quantityType: QuantityType)` to simplify boolean expressions
+- `focusedQuantityID` state tracks currently focused quantity
+- Arrow keys and Tab update `focusedQuantityID`
+
+**Keyboard Shortcuts Summary**:
+| Shortcut | Action | Category |
+|----------|--------|----------|
+| Cmd+N | New Quantity Type | Quantity |
+| Cmd+E | Add Entry to Focused Quantity | Quantity |
+| Return | Quick Add Entry | Quantity |
+| Up/Down | Navigate Quantities | Navigation |
+| Tab/Shift+Tab | Navigate Quantities (Alt) | Navigation |
+| Escape | Dismiss Sheet | General |
+| CMD+/ | Show/Hide Shortcuts Help | General |
+
+### Technical Challenges Solved
+
+**Challenge 1: SwiftUI Type-Checking Complexity**
+- **Problem**: Inline `isFocused: quantityType.id == focusedQuantityID` caused compiler timeout
+- **Solution**: Created helper method to extract boolean expression
+
+**Challenge 2: Too Many Focused Values**
+- **Problem**: 6 chained `.focusedValue()` modifiers exceeded type-checking limits
+- **Solution**: Created custom `ViewModifier` consolidating all focused values
+
+**Challenge 3: Build Error - File Not in Target**
+- **Problem**: `KeyboardShortcutsHelpView.swift` not recognized by Xcode
+- **Solution**: Manually added to project.pbxproj (PBXBuildFile and PBXFileReference)
+
+### User Experience Improvements
+
+**Visual Feedback**:
+- Clear indication of which card is focused (colored border)
+- Satisfying hover effects when using iPad with pointer
+- Smooth animations that feel responsive
+
+**Keyboard Efficiency**:
+- Power users can navigate entire app without touching screen
+- Cmd+E → type value → Return = fastest entry workflow
+- Escape key works universally to close sheets
+- Help always available with CMD+/
+
+**Accessibility**:
+- Keyboard navigation makes app more accessible
+- Visual focus indicators help users with motor difficulties
+- Alternative to touch-based interaction
+
+### Testing Completed
+- ✅ Build succeeded with no warnings
+- ✅ All keyboard shortcuts work as expected
+- ✅ Focus indicators display correctly
+- ✅ Hover effects work on iPad with pointer
+- ✅ Help dialog displays all shortcuts
+- ✅ Navigation between quantities works smoothly
+- ✅ Escape key dismisses sheets
+- ✅ Return key quick-adds entries
+- ✅ No regressions in existing functionality
+
+### Performance Impact
+- Negligible - focus state tracking is lightweight
+- Custom ViewModifier improved compile time
+- No impact on runtime performance
+
+### Code Quality
+- Clean separation of concerns
+- Reusable ViewModifier pattern
+- Clear, documented code
+- Consistent with SwiftUI best practices
+
+### Commit
+**Hash**: `4ae91c3`
+**Message**: "Add comprehensive iPad keyboard shortcuts and visual enhancements"
+
+---
+
 ## 🖥️ iPad and macOS Platform Optimization (Future Phase)
 
 ### Overview
