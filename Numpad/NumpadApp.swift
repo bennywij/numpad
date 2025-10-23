@@ -58,10 +58,47 @@ struct NumpadApp: App {
         }
     }()
 
+    @FocusedValue(\.newQuantityAction) private var newQuantityAction
+    @FocusedValue(\.addEntryAction) private var addEntryAction
+    @FocusedValue(\.nextQuantityAction) private var nextQuantityAction
+    @FocusedValue(\.previousQuantityAction) private var previousQuantityAction
+
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+        .commands {
+            // Keyboard shortcuts for iPad
+            CommandMenu("Quantity") {
+                Button("New Quantity Type") {
+                    newQuantityAction?()
+                }
+                .keyboardShortcut("n", modifiers: .command)
+                .disabled(newQuantityAction == nil)
+
+                Divider()
+
+                Button("Add Entry") {
+                    addEntryAction?()
+                }
+                .keyboardShortcut("e", modifiers: .command)
+                .disabled(addEntryAction == nil)
+
+                Divider()
+
+                Button("Next Quantity") {
+                    nextQuantityAction?()
+                }
+                .keyboardShortcut(.downArrow, modifiers: [])
+                .disabled(nextQuantityAction == nil)
+
+                Button("Previous Quantity") {
+                    previousQuantityAction?()
+                }
+                .keyboardShortcut(.upArrow, modifiers: [])
+                .disabled(previousQuantityAction == nil)
+            }
+        }
     }
 }

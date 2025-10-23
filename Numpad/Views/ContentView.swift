@@ -45,6 +45,9 @@ struct ContentView: View {
     @State private var navigationPath = NavigationPath()
     @State private var deepLinkQuantityID: UUID?
 
+    // Keyboard navigation state
+    @State private var focusedQuantityID: UUID?
+
     // User preference: should widget tap open entry card or analytics?
     @AppStorage("widgetOpensEntryCard") private var widgetOpensEntryCard = true
 
@@ -209,6 +212,10 @@ struct ContentView: View {
                 // Recalculate totals when quantity types are added/removed
                 recalculateTotals()
             }
+            .focusedValue(\.newQuantityAction, handleNewQuantityShortcut)
+            .focusedValue(\.addEntryAction, handleAddEntryShortcut)
+            .focusedValue(\.nextQuantityAction, selectNextQuantity)
+            .focusedValue(\.previousQuantityAction, selectPreviousQuantity)
         }
     }
 
@@ -270,23 +277,24 @@ struct ContentView: View {
 
     // MARK: - Main Quantities Section
 
+    @ViewBuilder
     private var mainQuantitiesSection: some View {
-        VStack(spacing: 16) {
-            ForEach(mainListQuantities) { quantityType in
-                QuantityTypeRow(
-                    quantityType: quantityType,
-                    total: calculateTotal(for: quantityType),
-                    onAddEntry: {
-                        addEntryFor = quantityType
-                    },
-                    onEdit: {
-                        editQuantityType = quantityType
-                    },
-                    modelContext: modelContext
-                )
-            }
-            .onDelete(perform: deleteQuantityTypes)
-            .onMove(perform: moveQuantityTypes)
+        AdaptiveGrid(
+            items: mainListQuantities,
+            onDelete: deleteQuantityTypes,
+            onMove: moveQuantityTypes
+        ) { quantityType in
+            QuantityTypeRow(
+                quantityType: quantityType,
+                total: calculateTotal(for: quantityType),
+                onAddEntry: {
+                    addEntryFor = quantityType
+                },
+                onEdit: {
+                    editQuantityType = quantityType
+                },
+                modelContext: modelContext
+            )
         }
         .padding(.horizontal, 16)
     }
@@ -503,5 +511,125 @@ struct ContentView: View {
 
         print("✅ Parsed quantity ID: \(quantityID)")
         deepLinkQuantityID = quantityID
+    }
+
+    // MARK: - Keyboard Shortcuts
+
+    /// Get currently focused quantity type, or first visible if none focused
+    private var focusedQuantity: QuantityType? {
+        if let focusedID = focusedQuantityID,
+           let quantity = visibleQuantityTypes.first(where: { $0.id == focusedID }) {
+            return quantity
+        }
+        return visibleQuantityTypes.first
+    }
+
+    /// Handle new quantity type shortcut (Cmd+N)
+    private func handleNewQuantityShortcut() {
+        showingAddQuantityType = true
+    }
+
+    /// Handle add entry shortcut (Cmd+E or Return)
+    private func handleAddEntryShortcut() {
+        guard let quantity = focusedQuantity else { return }
+        addEntryFor = quantity
+    }
+
+    /// Navigate to next quantity type (Down arrow)
+    private func selectNextQuantity() {
+        guard !visibleQuantityTypes.isEmpty else { return }
+
+        if let currentIndex = visibleQuantityTypes.firstIndex(where: { $0.id == focusedQuantityID }) {
+            let nextIndex = (currentIndex + 1) % visibleQuantityTypes.count
+            focusedQuantityID = visibleQuantityTypes[nextIndex].id
+        } else {
+            focusedQuantityID = visibleQuantityTypes.first?.id
+        }
+    }
+
+    /// Navigate to previous quantity type (Up arrow)
+    private func selectPreviousQuantity() {
+        guard !visibleQuantityTypes.isEmpty else { return }
+
+        if let currentIndex = visibleQuantityTypes.firstIndex(where: { $0.id == focusedQuantityID }) {
+            let previousIndex = currentIndex == 0 ? visibleQuantityTypes.count - 1 : currentIndex - 1
+            focusedQuantityID = visibleQuantityTypes[previousIndex].id
+        } else {
+            focusedQuantityID = visibleQuantityTypes.last?.id
+        }
+    }
+}
+
+// MARK: - Adaptive Grid for iPad
+
+/// Adaptive grid layout that intelligently adjusts column count based on available space
+/// - iPhone: 1 column with swipe-to-delete and drag-to-reorder
+/// - iPad Portrait: 2 columns
+/// - iPad Landscape: 3 columns on larger iPads, 2 on smaller
+/// - iPad Split View: Adapts from 1-3 columns based on available width
+struct AdaptiveGrid<Item: Identifiable, Content: View>: View {
+    let items: [Item]
+    let onDelete: ((IndexSet) -> Void)?
+    let onMove: ((IndexSet, Int) -> Void)?
+    let content: (Item) -> Content
+
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    init(
+        items: [Item],
+        onDelete: ((IndexSet) -> Void)? = nil,
+        onMove: ((IndexSet, Int) -> Void)? = nil,
+        @ViewBuilder content: @escaping (Item) -> Content
+    ) {
+        self.items = items
+        self.onDelete = onDelete
+        self.onMove = onMove
+        self.content = content
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let columnCount = determineColumnCount(for: geometry.size.width)
+            let spacing: CGFloat = 16
+
+            if columnCount > 1 {
+                // iPad: Multi-column grid layout (onDelete/onMove not supported - would need custom implementation)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing), count: columnCount), spacing: spacing) {
+                    ForEach(items) { item in
+                        content(item)
+                    }
+                }
+            } else {
+                // iPhone or narrow iPad Split View: Single column with edit support
+                VStack(spacing: spacing) {
+                    ForEach(items) { item in
+                        content(item)
+                    }
+                    .onDelete(perform: onDelete)
+                    .onMove(perform: onMove)
+                }
+            }
+        }
+    }
+
+    /// Determines optimal column count based on available width
+    /// - Parameter width: Available width in points
+    /// - Returns: Number of columns (1-3)
+    private func determineColumnCount(for width: CGFloat) -> Int {
+        // Minimum card width for good UX (approximately)
+        let minCardWidth: CGFloat = 300
+        let spacing: CGFloat = 16
+        let horizontalPadding: CGFloat = 32 // 16pt on each side
+
+        let availableWidth = width - horizontalPadding
+
+        // Calculate how many columns can comfortably fit
+        if availableWidth >= minCardWidth * 3 + spacing * 4 {
+            return 3  // iPad Pro 12.9" landscape
+        } else if availableWidth >= minCardWidth * 2 + spacing * 3 {
+            return 2  // iPad portrait, iPad Air/Pro landscape, Split View 2/3
+        } else {
+            return 1  // iPhone, Split View 1/3, Slide Over
+        }
     }
 }

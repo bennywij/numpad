@@ -222,8 +222,9 @@ Views (SwiftUI)
 - [ ] Multi-device conflict resolution testing
 
 ### Platform & Integration
-- [ ] iPad optimization
-- [ ] Mac Catalyst version
+- [ ] iPad optimization (see detailed plan below)
+- [ ] Mac Catalyst version (see detailed plan below)
+- [ ] Database indexing for performance (targeting iOS 17.5+ or later when .indexed attribute is stable)
 - [ ] Shortcuts app integration beyond Siri
 - [ ] Health app integration for relevant metrics
 - [ ] Apple Watch complication
@@ -1915,3 +1916,394 @@ if widgetOpensEntryCard {
 ---
 
 **Current App Status**: Production-ready with enhanced UX customization
+
+---
+
+## 🖥️ iPad and macOS Platform Optimization (Future Phase)
+
+### Overview
+Adapt the iOS-focused app to provide excellent user experiences on iPad and macOS, leveraging larger screens and platform-specific interaction patterns.
+
+### Goals
+1. **iPad**: Optimize layouts for larger screens, multi-column layouts, and iPadOS-specific features
+2. **macOS**: Enable Mac Catalyst and adapt UI for mouse/keyboard input and macOS conventions
+3. **Consistency**: Maintain feature parity across all platforms while respecting platform idioms
+4. **Performance**: Ensure CloudKit sync works seamlessly across devices
+
+---
+
+### Phase A: iPad Optimization
+
+#### A1. Screen Size Adaptation
+**Goal**: Ensure the app looks great on all iPad screen sizes
+
+**Tasks**:
+- [ ] Test on iPad Mini (8.3"), iPad Air (10.9"), and iPad Pro (11"/12.9")
+- [ ] Implement responsive layouts using size classes (compact vs. regular)
+- [ ] Optimize QuantityTypeCard sizing for larger screens
+  - Consider 2-column grid on landscape iPad
+  - Increase card sizes for better readability
+- [ ] Adjust font sizes and spacing for iPad (larger tap targets)
+- [ ] Test portrait and landscape orientations thoroughly
+
+**Files to Modify**:
+- `Numpad/Views/ContentView.swift` - Responsive grid layouts
+- `Numpad/Views/Components/QuantityTypeCard.swift` - Larger card variants
+- `Numpad/Views/AddEntryView.swift` - Better use of space
+- `Numpad/Views/AnalyticsView.swift` - Multi-column layouts where appropriate
+
+#### A2. Split View and Multitasking Support
+**Goal**: Support iPad multitasking features (Split View, Slide Over)
+
+**Tasks**:
+- [ ] Test in Split View (1/3, 1/2, 2/3 width configurations)
+- [ ] Test in Slide Over (compact width)
+- [ ] Ensure layouts gracefully adapt to narrow widths
+- [ ] Verify navigation stack works correctly in split view
+- [ ] Test keyboard shortcuts work in multitasking modes
+
+**Testing**:
+- [ ] Verify Quick Add section remains usable in all multitasking modes
+- [ ] Confirm analytics charts render correctly in narrow views
+- [ ] Test entry history scrolling in various widths
+
+#### A3. Apple Pencil and Pointer Support
+**Goal**: Enhance iPad-specific input methods
+
+**Tasks**:
+- [ ] Add pointer hover effects to cards and buttons
+- [ ] Implement larger tap targets where appropriate (44pt minimum)
+- [ ] Consider Apple Pencil scribble support for text fields
+- [ ] Test drag-and-drop reordering with Apple Pencil
+- [ ] Add iPad-specific gestures where beneficial
+
+**Files to Modify**:
+- `Numpad/Views/Components/QuantityTypeCard.swift` - Hover effects
+- `Numpad/Views/AddEntryView.swift` - Scribble support
+
+#### A4. iPad Keyboard Shortcuts
+**Goal**: Add keyboard shortcuts for common actions
+
+**Tasks**:
+- [ ] Add keyboard shortcuts:
+  - `Cmd+N` - Add new entry to Quick Add quantity
+  - `Cmd+Shift+N` - Create new quantity type
+  - `Cmd+E` - Edit selected quantity
+  - `Cmd+H` - Hide/unhide selected quantity
+  - `Cmd+,` - Open settings menu
+  - `Cmd+W` - Close current sheet/modal
+  - `Esc` - Dismiss sheets and modals
+  - Arrow keys - Navigate between cards
+- [ ] Add keyboard shortcut discoverability (hold Cmd to show shortcuts)
+- [ ] Document all shortcuts in help menu
+
+**Implementation**:
+- Use `.keyboardShortcut()` modifiers
+- Add focus management for arrow key navigation
+- Consider `.focusedSceneValue()` for context-aware shortcuts
+
+#### A5. iPad-Specific UI Enhancements
+**Goal**: Leverage iPad's larger screen for better UX
+
+**Tasks**:
+- [ ] Consider sidebar navigation instead of stack navigation (optional)
+- [ ] Add iPad-optimized popovers for settings and actions
+- [ ] Implement form sheet presentation style for add/edit views
+- [ ] Consider inline editing for entries (tap to edit in place)
+- [ ] Optimize widget sizes for iPad home screen and Lock Screen
+
+**Considerations**:
+- Keep navigation simple - don't overcomplicate for iPad
+- Maintain consistency with iPhone version where possible
+- Test with external keyboard and trackpad
+
+---
+
+### Phase B: macOS Optimization (Mac Catalyst)
+
+#### B1. Enable Mac Catalyst
+**Goal**: Get the app running on macOS
+
+**Tasks**:
+- [ ] Enable Mac Catalyst in Xcode project settings
+  - Target: macOS 14.0+ (Sonoma)
+  - Optimize interface: "Scale Interface to Match iPad"
+- [ ] Build and run on macOS (Intel and Apple Silicon)
+- [ ] Fix any macOS-specific build errors
+- [ ] Verify CloudKit sync works on macOS
+- [ ] Test widget on macOS Notification Center (if applicable)
+
+**Files to Modify**:
+- `Numpad.xcodeproj/project.pbxproj` - Enable Catalyst target
+- `Info.plist` - Add macOS-specific capabilities
+
+#### B2. macOS Menu Bar
+**Goal**: Implement native macOS menu bar with standard menus
+
+**Tasks**:
+- [ ] Create File menu:
+  - New Entry (Cmd+N)
+  - New Quantity Type (Cmd+Shift+N)
+  - Export Data (Cmd+E)
+  - Close Window (Cmd+W)
+- [ ] Create Edit menu:
+  - Standard editing commands (if applicable)
+  - Settings (Cmd+,)
+- [ ] Create View menu:
+  - Show/Hide sections
+  - Refresh (Cmd+R)
+- [ ] Create Window menu:
+  - Standard window management
+  - Minimize (Cmd+M)
+  - Zoom
+- [ ] Create Help menu:
+  - App documentation
+  - Keyboard shortcuts reference
+
+**Implementation**:
+- Use `.commands()` modifier in main app struct
+- Implement `CommandGroup` for each menu section
+
+#### B3. Window Management
+**Goal**: Proper macOS window behavior
+
+**Tasks**:
+- [ ] Set default window size (e.g., 900x700)
+- [ ] Set minimum window size (prevent too-small layouts)
+- [ ] Allow window resizing with proper layout adaptation
+- [ ] Test multiple windows (if applicable)
+- [ ] Add window title with current view context
+- [ ] Consider full-screen mode support
+
+**Files to Modify**:
+- `Numpad/NumpadApp.swift` - Window configuration
+- Use `WindowGroup` with `.defaultSize()` and `.windowResizability()`
+
+#### B4. Toolbar Customization
+**Goal**: Native macOS toolbar with customization
+
+**Tasks**:
+- [ ] Design toolbar with common actions:
+  - Add Entry button
+  - Add Quantity Type button
+  - Export button
+  - Settings button
+- [ ] Make toolbar items customizable (user can add/remove)
+- [ ] Add toolbar item labels for macOS
+- [ ] Test with toolbar shown/hidden (Cmd+Option+T)
+
+**Implementation**:
+- Use `.toolbar()` with `.principal` placement
+- Use `ToolbarItem` with `.customizableToolbar()` modifier
+
+#### B5. Mouse and Trackpad Optimization
+**Goal**: Optimize for mouse/trackpad input instead of touch
+
+**Tasks**:
+- [ ] Reduce minimum tap target sizes (macOS allows smaller)
+- [ ] Add right-click context menus:
+  - Right-click card → Edit, Hide, Delete options
+  - Right-click entry → Edit, Delete options
+- [ ] Add hover effects for all interactive elements
+- [ ] Optimize scroll views for trackpad gestures
+- [ ] Test drag-and-drop with mouse
+- [ ] Ensure all buttons have proper cursor shapes
+
+**Files to Modify**:
+- All view files - Add `.contextMenu()` modifiers
+- Add `.onHover()` for hover states
+
+#### B6. macOS-Specific Features
+**Goal**: Leverage macOS-specific capabilities
+
+**Tasks**:
+- [ ] Support drag-and-drop from Finder (optional - import CSV)
+- [ ] Add Quick Actions support (right-click in Finder)
+- [ ] Consider Touch Bar support (if applicable)
+- [ ] Test with macOS accessibility features (VoiceOver, Zoom)
+- [ ] Support system appearance changes (Light/Dark mode)
+- [ ] Test with external displays and screen scaling
+
+**Advanced Features (Optional)**:
+- [ ] Add Spotlight integration for searching entries
+- [ ] Add Services menu integration
+- [ ] Consider Shortcuts app integration on macOS
+
+---
+
+### Phase C: Cross-Platform Testing
+
+#### C1. Multi-Device CloudKit Sync
+**Goal**: Verify data syncs correctly across iPhone, iPad, and Mac
+
+**Tasks**:
+- [ ] Test CloudKit sync: iPhone ↔ iPad
+- [ ] Test CloudKit sync: iPhone ↔ Mac
+- [ ] Test CloudKit sync: iPad ↔ Mac
+- [ ] Test sync: iPhone ↔ iPad ↔ Mac (all three)
+- [ ] Verify conflict resolution works correctly
+- [ ] Test offline mode on each platform
+- [ ] Test sync recovery after network interruption
+
+**Test Cases**:
+- Create entry on iPhone, verify appears on iPad/Mac
+- Edit quantity type on Mac, verify updates on iPhone/iPad
+- Delete entry on iPad, verify deletion syncs
+- Create 100 entries on iPhone, verify all sync to other devices
+- Test with airplane mode: offline → online → sync
+
+#### C2. Widget Testing Across Platforms
+**Goal**: Ensure widgets work correctly on all platforms
+
+**Tasks**:
+- [ ] Test iPhone widgets (Small, Medium, Large)
+- [ ] Test iPad widgets (all sizes + Lock Screen if applicable)
+- [ ] Test macOS widgets in Notification Center (if supported)
+- [ ] Verify widget configuration works on all platforms
+- [ ] Test deep linking from widgets on each platform
+- [ ] Verify widget refresh timelines work correctly
+
+#### C3. Platform-Specific Bug Testing
+**Goal**: Find and fix platform-specific issues
+
+**Tasks**:
+- [ ] Test on iPhone SE (small screen edge case)
+- [ ] Test on iPad Pro 12.9" (largest iPad)
+- [ ] Test on MacBook Air (smaller Mac screen)
+- [ ] Test on external display with Mac
+- [ ] Test with different Dynamic Type sizes on all platforms
+- [ ] Test with accessibility features enabled (VoiceOver, etc.)
+
+---
+
+### Phase D: Documentation and Polish
+
+#### D1. Platform-Specific Documentation
+**Goal**: Document platform-specific features and behaviors
+
+**Tasks**:
+- [ ] Update README with iPad/macOS support notes
+- [ ] Document keyboard shortcuts for iPad and macOS
+- [ ] Create platform comparison guide (what's different?)
+- [ ] Add screenshots for all platforms to App Store listing
+
+#### D2. App Store Preparation
+**Goal**: Prepare separate App Store listings for each platform
+
+**Tasks**:
+- [ ] Take iPad screenshots (all required sizes)
+- [ ] Take macOS screenshots (required sizes)
+- [ ] Write platform-specific app descriptions
+- [ ] Update app keywords for iPad/Mac discovery
+- [ ] Prepare promotional materials for each platform
+
+#### D3. Performance Validation
+**Goal**: Ensure performance is excellent on all platforms
+
+**Tasks**:
+- [ ] Profile with Xcode Instruments on iPhone
+- [ ] Profile with Xcode Instruments on iPad
+- [ ] Profile with Xcode Instruments on macOS (Intel and Apple Silicon)
+- [ ] Measure memory usage on all platforms
+- [ ] Verify widget performance on all platforms
+- [ ] Test with large datasets (10K+ entries) on each platform
+
+---
+
+### Implementation Priority
+
+**High Priority (Must Have)**:
+1. iPad screen size adaptation (A1)
+2. Enable Mac Catalyst (B1)
+3. macOS window management (B3)
+4. Multi-device CloudKit sync testing (C1)
+
+**Medium Priority (Should Have)**:
+1. iPad keyboard shortcuts (A4)
+2. macOS menu bar (B2)
+3. Mouse/trackpad optimization (B5)
+4. Split View support (A2)
+
+**Low Priority (Nice to Have)**:
+1. macOS toolbar customization (B4)
+2. Apple Pencil support (A3)
+3. macOS-specific features (B6)
+4. iPad sidebar navigation (A5)
+
+---
+
+### Success Criteria
+
+**iPad**:
+- ✅ App looks great on all iPad screen sizes
+- ✅ Multi-column layouts utilized effectively
+- ✅ Split View and multitasking work perfectly
+- ✅ Keyboard shortcuts are discoverable and useful
+- ✅ Pointer interactions feel natural
+
+**macOS**:
+- ✅ Native macOS menu bar with standard commands
+- ✅ Window management feels native to macOS
+- ✅ Toolbar is customizable and useful
+- ✅ Mouse/trackpad interactions are smooth
+- ✅ Right-click context menus are comprehensive
+
+**Cross-Platform**:
+- ✅ CloudKit sync is reliable across all devices
+- ✅ Feature parity maintained (or documented differences)
+- ✅ Performance is excellent on all platforms
+- ✅ No platform-specific bugs
+- ✅ Widgets work correctly on all platforms
+
+---
+
+### Risks and Considerations
+
+**Risks**:
+- Mac Catalyst may have unexpected UI issues (test early)
+- CloudKit sync complexity increases with more devices
+- Different screen sizes may reveal layout issues
+- macOS keyboard shortcuts may conflict with system shortcuts
+- Performance may vary between Intel and Apple Silicon Macs
+
+**Mitigation**:
+- Test Mac Catalyst early and often
+- Implement comprehensive CloudKit sync logging
+- Use responsive layouts from the start
+- Follow Apple's HIG for keyboard shortcut conventions
+- Test on both architectures regularly
+
+---
+
+### Estimated Timeline
+
+**iPad Optimization**: 2-3 days
+- Day 1: Screen adaptation and testing (A1, A2)
+- Day 2: Keyboard shortcuts and pointer support (A3, A4)
+- Day 3: Polish and iPad-specific enhancements (A5)
+
+**macOS Optimization**: 3-4 days
+- Day 1: Enable Catalyst, fix build issues, window management (B1, B3)
+- Day 2: Menu bar and toolbar (B2, B4)
+- Day 3: Mouse/trackpad optimization (B5)
+- Day 4: macOS-specific features and polish (B6)
+
+**Cross-Platform Testing**: 1-2 days
+- Day 1: CloudKit sync testing across devices (C1, C2)
+- Day 2: Platform-specific bug testing (C3)
+
+**Documentation and App Store**: 1 day
+- Final polish, screenshots, app store preparation (D1, D2, D3)
+
+**Total Estimated Time**: 7-10 days
+
+---
+
+### Notes
+
+- Start with iPad optimization since it's closer to iPhone
+- Mac Catalyst can be enabled early to catch issues sooner
+- CloudKit sync testing requires physical devices (can't fully test in simulator)
+- Consider beta testing with iPad and Mac users before release
+- Update deployment target if needed for newer platform features
+- Keep iOS version as primary - iPad/Mac are enhancements, not replacements

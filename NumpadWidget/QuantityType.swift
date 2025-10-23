@@ -18,7 +18,7 @@ final class QuantityType {
     var icon: String = "number"  // SF Symbol name
     var colorHex: String = "#007AFF"
 
-    // Frequently queried fields (SwiftData automatically indexes for predicates)
+    // Frequently queried fields (predicates will use these efficiently)
     var lastUsedAt: Date = Date()
     var createdAt: Date = Date()
     var sortOrder: Int = 0
