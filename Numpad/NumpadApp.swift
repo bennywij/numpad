@@ -62,6 +62,8 @@ struct NumpadApp: App {
     @FocusedValue(\.addEntryAction) private var addEntryAction
     @FocusedValue(\.nextQuantityAction) private var nextQuantityAction
     @FocusedValue(\.previousQuantityAction) private var previousQuantityAction
+    @FocusedValue(\.dismissSheetAction) private var dismissSheetAction
+    @FocusedValue(\.showKeyboardShortcutsAction) private var showKeyboardShortcutsAction
 
     var body: some Scene {
         WindowGroup {
@@ -85,6 +87,12 @@ struct NumpadApp: App {
                 .keyboardShortcut("e", modifiers: .command)
                 .disabled(addEntryAction == nil)
 
+                Button("Quick Add Entry") {
+                    addEntryAction?()
+                }
+                .keyboardShortcut(.return, modifiers: [])
+                .disabled(addEntryAction == nil)
+
                 Divider()
 
                 Button("Next Quantity") {
@@ -98,6 +106,36 @@ struct NumpadApp: App {
                 }
                 .keyboardShortcut(.upArrow, modifiers: [])
                 .disabled(previousQuantityAction == nil)
+
+                Divider()
+
+                Button("Next Quantity (Tab)") {
+                    nextQuantityAction?()
+                }
+                .keyboardShortcut(.tab, modifiers: [])
+                .disabled(nextQuantityAction == nil)
+
+                Button("Previous Quantity (Shift+Tab)") {
+                    previousQuantityAction?()
+                }
+                .keyboardShortcut(.tab, modifiers: .shift)
+                .disabled(previousQuantityAction == nil)
+
+                Divider()
+
+                Button("Dismiss Sheet") {
+                    dismissSheetAction?()
+                }
+                .keyboardShortcut(.escape, modifiers: [])
+                .disabled(dismissSheetAction == nil)
+            }
+
+            CommandMenu("Help") {
+                Button("Keyboard Shortcuts") {
+                    showKeyboardShortcutsAction?()
+                }
+                .keyboardShortcut("/", modifiers: .command)
+                .disabled(showKeyboardShortcutsAction == nil)
             }
         }
     }

@@ -11,6 +11,9 @@ struct QuantityTypeCard: View {
     let quantityType: QuantityType
     let total: Double
     let onPlusButtonTap: () -> Void
+    var isFocused: Bool = false
+
+    @State private var isHovering: Bool = false
 
     var body: some View {
         HStack(alignment: .center, spacing: 0) {
@@ -53,8 +56,23 @@ struct QuantityTypeCard: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.secondary.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.secondary.opacity(isFocused || isHovering ? 0.12 : 0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(
+                    Color(hex: quantityType.colorHex).opacity(isFocused ? 0.5 : 0),
+                    lineWidth: isFocused ? 2 : 0
+                )
+        )
+        .scaleEffect(isHovering ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.15), value: isHovering)
+        .animation(.easeInOut(duration: 0.2), value: isFocused)
+        .onHover { hovering in
+            isHovering = hovering
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(quantityType.name), total: \(quantityType.valueFormat.format(total))")
         .accessibilityHint("Double tap to view analytics and history")

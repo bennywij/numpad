@@ -47,6 +47,7 @@ struct ContentView: View {
 
     // Keyboard navigation state
     @State private var focusedQuantityID: UUID?
+    @State private var showingKeyboardShortcuts = false
 
     // User preference: should widget tap open entry card or analytics?
     @AppStorage("widgetOpensEntryCard") private var widgetOpensEntryCard = true
@@ -145,6 +146,9 @@ struct ContentView: View {
             .sheet(item: $editQuantityType) { quantityType in
                 EditQuantityTypeView(quantityType: quantityType, modelContext: modelContext)
             }
+            .sheet(isPresented: $showingKeyboardShortcuts) {
+                KeyboardShortcutsHelpView()
+            }
             .confirmationDialog(
                 "Reset All Data?",
                 isPresented: $showingResetConfirmation,
@@ -212,10 +216,14 @@ struct ContentView: View {
                 // Recalculate totals when quantity types are added/removed
                 recalculateTotals()
             }
-            .focusedValue(\.newQuantityAction, handleNewQuantityShortcut)
-            .focusedValue(\.addEntryAction, handleAddEntryShortcut)
-            .focusedValue(\.nextQuantityAction, selectNextQuantity)
-            .focusedValue(\.previousQuantityAction, selectPreviousQuantity)
+            .modifier(KeyboardShortcutsFocusedValues(
+                newQuantityAction: handleNewQuantityShortcut,
+                addEntryAction: handleAddEntryShortcut,
+                nextQuantityAction: selectNextQuantity,
+                previousQuantityAction: selectPreviousQuantity,
+                dismissSheetAction: dismissSheet,
+                showKeyboardShortcutsAction: showKeyboardShortcuts
+            ))
         }
     }
 
@@ -293,7 +301,8 @@ struct ContentView: View {
                 onEdit: {
                     editQuantityType = quantityType
                 },
-                modelContext: modelContext
+                modelContext: modelContext,
+                isFocused: isFocused(quantityType)
             )
         }
         .padding(.horizontal, 16)
@@ -557,6 +566,47 @@ struct ContentView: View {
         } else {
             focusedQuantityID = visibleQuantityTypes.last?.id
         }
+    }
+
+    /// Check if a quantity type is currently focused
+    private func isFocused(_ quantityType: QuantityType) -> Bool {
+        quantityType.id == focusedQuantityID
+    }
+
+    /// Dismiss any currently presented sheet (Escape key handler)
+    private func dismissSheet() {
+        showingAddQuantityType = false
+        addEntryFor = nil
+        editQuantityType = nil
+        showingKeyboardShortcuts = false
+    }
+
+    /// Show keyboard shortcuts help dialog (CMD+/ handler)
+    private func showKeyboardShortcuts() {
+        showingKeyboardShortcuts.toggle()
+    }
+}
+
+// MARK: - Keyboard Shortcuts Focused Values Modifier
+
+/// Custom ViewModifier to apply all keyboard shortcut focused values at once
+/// This helps reduce SwiftUI type-checking complexity
+struct KeyboardShortcutsFocusedValues: ViewModifier {
+    let newQuantityAction: () -> Void
+    let addEntryAction: () -> Void
+    let nextQuantityAction: () -> Void
+    let previousQuantityAction: () -> Void
+    let dismissSheetAction: () -> Void
+    let showKeyboardShortcutsAction: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .focusedValue(\.newQuantityAction, newQuantityAction)
+            .focusedValue(\.addEntryAction, addEntryAction)
+            .focusedValue(\.nextQuantityAction, nextQuantityAction)
+            .focusedValue(\.previousQuantityAction, previousQuantityAction)
+            .focusedValue(\.dismissSheetAction, dismissSheetAction)
+            .focusedValue(\.showKeyboardShortcutsAction, showKeyboardShortcutsAction)
     }
 }
 

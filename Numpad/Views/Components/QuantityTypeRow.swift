@@ -15,6 +15,7 @@ struct QuantityTypeRow: View {
     let onAddEntry: () -> Void
     let onEdit: () -> Void
     let modelContext: ModelContext
+    var isFocused: Bool = false
 
     var body: some View {
         NavigationLink {
@@ -23,7 +24,8 @@ struct QuantityTypeRow: View {
             QuantityTypeCard(
                 quantityType: quantityType,
                 total: total,
-                onPlusButtonTap: onAddEntry
+                onPlusButtonTap: onAddEntry,
+                isFocused: isFocused
             )
         }
         .buttonStyle(PlainButtonStyle())

@@ -25,6 +25,14 @@ struct PreviousQuantityActionKey: FocusedValueKey {
     typealias Value = () -> Void
 }
 
+struct DismissSheetActionKey: FocusedValueKey {
+    typealias Value = () -> Void
+}
+
+struct ShowKeyboardShortcutsActionKey: FocusedValueKey {
+    typealias Value = () -> Void
+}
+
 extension FocusedValues {
     var newQuantityAction: NewQuantityActionKey.Value? {
         get { self[NewQuantityActionKey.self] }
@@ -44,5 +52,15 @@ extension FocusedValues {
     var previousQuantityAction: PreviousQuantityActionKey.Value? {
         get { self[PreviousQuantityActionKey.self] }
         set { self[PreviousQuantityActionKey.self] = newValue }
+    }
+
+    var dismissSheetAction: DismissSheetActionKey.Value? {
+        get { self[DismissSheetActionKey.self] }
+        set { self[DismissSheetActionKey.self] = newValue }
+    }
+
+    var showKeyboardShortcutsAction: ShowKeyboardShortcutsActionKey.Value? {
+        get { self[ShowKeyboardShortcutsActionKey.self] }
+        set { self[ShowKeyboardShortcutsActionKey.self] = newValue }
     }
 }
