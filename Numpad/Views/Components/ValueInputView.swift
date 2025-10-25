@@ -100,6 +100,7 @@ struct CompoundInputView: View {
     @State private var date1: Date = Date()
     @State private var date2: Date = Date()
     @State private var hasUserInput: Bool = false
+    @State private var value2HasBeenEdited: Bool = false
 
     enum Field {
         case input1
@@ -159,6 +160,7 @@ struct CompoundInputView: View {
         }
         .onChange(of: value2) { _, _ in
             hasUserInput = true
+            value2HasBeenEdited = true
             updateCalculation()
         }
         .onChange(of: date1) { _, _ in
@@ -167,7 +169,14 @@ struct CompoundInputView: View {
         }
         .onChange(of: date2) { _, _ in
             hasUserInput = true
+            value2HasBeenEdited = true
             updateCalculation()
+        }
+        .onChange(of: focusedField) { _, newField in
+            // Mark value2 as edited when user leaves the field
+            if newField != .input2 && focusedField == .input2 {
+                value2HasBeenEdited = true
+            }
         }
         .onAppear {
             initializeDefaults()
@@ -227,8 +236,8 @@ struct CompoundInputView: View {
     }
 
     private func formatResult() -> String {
-        // Check for error states (only show after user input)
-        if config.operation == .divide && value2 == 0 && hasUserInput {
+        // Check for error states (only show after value2 has been explicitly edited)
+        if config.operation == .divide && value2 == 0 && value2HasBeenEdited {
             return "Error: Divide by zero"
         }
 

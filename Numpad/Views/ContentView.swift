@@ -614,9 +614,7 @@ struct KeyboardShortcutsFocusedValues: ViewModifier {
 
 /// Adaptive grid layout that intelligently adjusts column count based on available space
 /// - iPhone: 1 column with swipe-to-delete and drag-to-reorder
-/// - iPad Portrait: 2 columns
-/// - iPad Landscape: 3 columns on larger iPads, 2 on smaller
-/// - iPad Split View: Adapts from 1-3 columns based on available width
+/// - iPad (any orientation): 2 columns
 struct AdaptiveGrid<Item: Identifiable, Content: View>: View {
     let items: [Item]
     let onDelete: ((IndexSet) -> Void)?
@@ -638,48 +636,25 @@ struct AdaptiveGrid<Item: Identifiable, Content: View>: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let columnCount = determineColumnCount(for: geometry.size.width)
-            let spacing: CGFloat = 16
+        let isRegular = horizontalSizeClass == .regular
+        let spacing: CGFloat = 16
 
-            if columnCount > 1 {
-                // iPad: Multi-column grid layout (onDelete/onMove not supported - would need custom implementation)
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing), count: columnCount), spacing: spacing) {
-                    ForEach(items) { item in
-                        content(item)
-                    }
-                }
-            } else {
-                // iPhone or narrow iPad Split View: Single column with edit support
-                VStack(spacing: spacing) {
-                    ForEach(items) { item in
-                        content(item)
-                    }
-                    .onDelete(perform: onDelete)
-                    .onMove(perform: onMove)
+        if isRegular {
+            // iPad: 2-column grid layout (onDelete/onMove not supported)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: spacing), count: 2), spacing: spacing) {
+                ForEach(items) { item in
+                    content(item)
                 }
             }
-        }
-    }
-
-    /// Determines optimal column count based on available width
-    /// - Parameter width: Available width in points
-    /// - Returns: Number of columns (1-3)
-    private func determineColumnCount(for width: CGFloat) -> Int {
-        // Minimum card width for good UX (approximately)
-        let minCardWidth: CGFloat = 300
-        let spacing: CGFloat = 16
-        let horizontalPadding: CGFloat = 32 // 16pt on each side
-
-        let availableWidth = width - horizontalPadding
-
-        // Calculate how many columns can comfortably fit
-        if availableWidth >= minCardWidth * 3 + spacing * 4 {
-            return 3  // iPad Pro 12.9" landscape
-        } else if availableWidth >= minCardWidth * 2 + spacing * 3 {
-            return 2  // iPad portrait, iPad Air/Pro landscape, Split View 2/3
         } else {
-            return 1  // iPhone, Split View 1/3, Slide Over
+            // iPhone: Single column with edit support
+            VStack(spacing: spacing) {
+                ForEach(items) { item in
+                    content(item)
+                }
+                .onDelete(perform: onDelete)
+                .onMove(perform: onMove)
+            }
         }
     }
 }
