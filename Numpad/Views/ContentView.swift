@@ -642,7 +642,7 @@ struct AdaptiveGrid<Item: Identifiable, Content: View>: View {
 
     var body: some View {
         let isRegular = horizontalSizeClass == .regular
-        let spacing: CGFloat = 16
+        let spacing: CGFloat = 8
 
         if isRegular {
             // iPad: 2-column grid layout (onDelete/onMove not supported)
@@ -662,4 +662,10 @@ struct AdaptiveGrid<Item: Identifiable, Content: View>: View {
             }
         }
     }
+}
+
+
+// A SwiftUI preview.
+#Preview {
+    ContentView()
 }
