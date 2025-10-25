@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import UIKit
 
 /// Row component for displaying a quantity type with navigation and context menu
 struct QuantityTypeRow: View {
@@ -45,16 +44,12 @@ struct QuantityTypeRow: View {
         }
         .transition(.asymmetric(
             insertion: .identity,
-            removal: .move(edge: .bottom).combined(with: .opacity)
+            removal: .opacity.combined(with: .scale(scale: 0.95))
         ))
-        .animation(.easeInOut(duration: 0.2), value: quantityType.isHidden)
+        .animation(.easeOut(duration: 0.3), value: quantityType.isHidden)
     }
 
     private func toggleHidden() {
-        // Provide haptic feedback for the hide/show action
-        let haptic = UISelectionFeedbackGenerator()
-        haptic.selectionChanged()
-
         quantityType.isHidden.toggle()
         try? modelContext.save()
     }
