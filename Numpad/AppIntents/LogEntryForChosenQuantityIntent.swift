@@ -12,11 +12,11 @@ struct LogEntryForChosenQuantityIntent: AppIntent {
     static var title: LocalizedStringResource = "Log to a specific quantity"
     static var description = IntentDescription("Log a value to a quantity you choose in Numpad")
 
-    @Parameter(title: "Quantity")
-    var quantityType: QuantityTypeEntity
-
     @Parameter(title: "Value")
     var value: Double
+
+    @Parameter(title: "Quantity")
+    var quantityType: QuantityTypeEntity
 
     @Parameter(title: "Notes", default: "")
     var notes: String
