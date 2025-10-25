@@ -21,6 +21,7 @@ struct EditQuantityTypeView: View {
     @State private var selectedIcon: String
     @State private var selectedColorHex: String
     @State private var isHidden: Bool
+    @State private var showDeleteConfirmation = false
 
     init(quantityType: QuantityType, modelContext: ModelContext) {
         self.quantityType = quantityType
@@ -127,6 +128,29 @@ struct EditQuantityTypeView: View {
                     }
                     .padding()
                 }
+
+                Section {
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "trash")
+                            Text("Delete Quantity Type")
+                        }
+                    }
+                }
+            }
+            .confirmationDialog(
+                "Delete \(name.isEmpty ? "Quantity Type" : name)?",
+                isPresented: $showDeleteConfirmation,
+                presenting: quantityType
+            ) { _ in
+                Button("Delete Anyway", role: .destructive) {
+                    deleteQuantityType()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { _ in
+                Text("This will permanently delete \(name.isEmpty ? "this quantity type" : name) and all its entries.\n\nThis action cannot be undone and will also remove data from iCloud.\n\nTip: Consider exporting your data first to save a backup.")
             }
             .navigationTitle("Edit Quantity Type")
             .navigationBarTitleDisplayMode(.inline)
@@ -159,5 +183,18 @@ struct EditQuantityTypeView: View {
         quantityType.isHidden = isHidden
 
         try? modelContext.save()
+    }
+
+    private func deleteQuantityType() {
+        print("🗑️ Deleting quantity type: \(quantityType.name)")
+
+        // SwiftData automatically cascades deletes through relationships
+        // All entries related to this quantity type will be deleted
+        modelContext.delete(quantityType)
+
+        try? modelContext.save()
+        print("✅ Quantity type deleted and saved")
+
+        dismiss()
     }
 }

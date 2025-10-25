@@ -35,6 +35,17 @@ struct QuantityTypeRow: View {
             } label: {
                 Label("Edit", systemImage: "pencil")
             }
+
+            Button {
+                toggleHidden()
+            } label: {
+                Label(quantityType.isHidden ? "Unhide" : "Hide", systemImage: quantityType.isHidden ? "eye" : "eye.slash")
+            }
         }
+    }
+
+    private func toggleHidden() {
+        quantityType.isHidden.toggle()
+        try? modelContext.save()
     }
 }
