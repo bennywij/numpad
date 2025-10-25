@@ -19,5 +19,13 @@ struct NumpadShortcuts: AppShortcutsProvider {
             shortTitle: "Log Entry",
             systemImageName: "number.square.fill"
         )
+        AppShortcut(
+            intent: LogEntryForChosenQuantityIntent(),
+            phrases: [
+                "Log to a specific quantity in \(.applicationName)"
+            ],
+            shortTitle: "Log to a specific quantity",
+            systemImageName: "number.square.fill"
+        )
     }
 }

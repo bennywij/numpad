@@ -62,7 +62,7 @@ struct QuantityTypeQuery: EntityQuery {
     private func getModelContext() throws -> ModelContext {
         let schema = Schema([
             QuantityType.self,
-            Entry.self,
+            NumpadEntry.self,
         ])
         let modelConfiguration = ModelConfiguration(
             schema: schema,

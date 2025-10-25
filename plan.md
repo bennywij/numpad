@@ -107,28 +107,65 @@ The widget crashed due to CloudKit handler conflicts:
 
 ---
 
+## Session Progress (Oct 25 Evening - Second App Intent)
+
+### COMPLETED ✅
+
+**Second App Intent: "Log to a Specific Quantity"**
+1. **Planned design carefully** - Parameter-based intent, user selects quantity before logging
+2. **Followed safe pattern** - Exact same CloudKit-safe architecture as LogEntryIntent (cloudKitDatabase: .none)
+3. **Created LogEntryForChosenQuantityIntent.swift**
+   - Takes QuantityTypeEntity parameter for user selection
+   - Creates entry for chosen quantity (not auto-selected)
+   - Updates lastUsedAt and saves
+   - Returns confirmation dialog
+4. **Updated AppShortcuts.swift** - Registered new intent with correct result builder syntax
+5. **Fixed build issues**:
+   - Added files to Xcode project.pbxproj (critical for build)
+   - Fixed Entry model name (NumpadEntry)
+   - Fixed UUID predicate comparison
+6. **Build succeeded** - Zero compiler errors ✅
+7. **Testing passed** ✅:
+   - Widget still appears in Add Widgets list
+   - Both intents appear in Shortcuts app
+   - Original LogEntryIntent still works
+   - New intent allows choosing quantity before logging
+   - Entries logged correctly with user-selected quantities
+8. **Commit: [pending - this commit]**
+
+### Why This Approach Was Safe
+- No changes to main app UI or data models
+- No widget code modifications
+- Used existing QuantityTypeEntity for parameter
+- Same CloudKit handler pattern as proven LogEntryIntent
+- Minimal surface area (3 files): easy rollback if needed
+- Extensive testing before committing
+
+---
+
 ## Next Steps
 
-### Proceed With
+### Recommended Priorities
 
-1. **Make sortOrder Actually Work Persistently**
-   - Ensure drag-to-reorder on iPhone updates sortOrder correctly
-   - Verify sortOrder is saved to database properly
-   - Test that reorder persists after app restart
-   - Ensure iPad multi-column layout respects sortOrder (not affected by our 2-column simplification)
+1. **SortOrder/Drag-to-Reorder** (LOW PRIORITY - Optional Enhancement)
+   - Decision: HOLD for now
+   - Rationale: Non-standard UX in custom layout, risky to implement without clear value
+   - Current behavior (most recently used sorting) appears sufficient
+   - Can revisit in future refactor/feature push if needed
 
-2. **Implement Second App Intent Properly**
-   - Add AddToQuantityIntent to build phase
-   - Register in AppShortcuts with correct syntax
-   - Test shortcuts appear in Shortcuts app
+2. **App Polish & Testing** (MEDIUM PRIORITY)
+   - Run full manual test suite
+   - Verify all shortcuts in real Shortcuts app (not just simulator)
+   - Test on physical device if available
+   - Check for any regressions with new intent
 
-3. **Review & Polish**
-   - Run full test suite
-   - Verify all shortcuts work
-   - Clean up debug logging if added
+3. **Future Enhancements** (LOW PRIORITY)
+   - Voice control improvements (hard with quantity selection)
+   - Widget data sync enhancements beyond current App Group
+   - Additional app intents (e.g., view recent entries, export data)
 
-**Note on Widget Enhancement:**
-- App Group (`group.com.bennywijatno.numpad.app`) is properly configured
-- Widget and main app are sharing SwiftData correctly via App Group
-- Widget can access the shared database without additional cross-process sync needed
-- Current architecture is working as intended ✅
+### Architecture Notes
+- App Group (`group.com.bennywijatno.numpad.app`) working correctly ✅
+- Widget stable and properly isolated from CloudKit conflicts ✅
+- App Intent pattern established and proven safe (cloudKitDatabase: .none) ✅
+- Current two-intent setup covers: auto-log (fast) and selective-log (flexible)

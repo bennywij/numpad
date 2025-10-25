@@ -35,6 +35,8 @@
 		A10000021A /* LogEntryIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000022A /* LogEntryIntent.swift */; };
 		A10000023A /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000024A /* AppShortcuts.swift */; };
 		A10000025B /* KeyboardShortcutsHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000025C /* KeyboardShortcutsHelpView.swift */; };
+		A1000003BA /* LogEntryForChosenQuantityIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000003CA /* LogEntryForChosenQuantityIntent.swift */; };
+		A1000003DA /* QuantityTypeEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000003EA /* QuantityTypeEntity.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +94,8 @@
 		A10000024A /* AppShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShortcuts.swift; sourceTree = "<group>"; };
 		A10000025A /* Numpad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Numpad.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000025C /* KeyboardShortcutsHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcutsHelpView.swift; sourceTree = "<group>"; };
+		A1000003CA /* LogEntryForChosenQuantityIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogEntryForChosenQuantityIntent.swift; sourceTree = "<group>"; };
+		A1000003EA /* QuantityTypeEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantityTypeEntity.swift; sourceTree = "<group>"; };
 		A10000026A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -201,6 +205,8 @@
 			children = (
 				A10000022A /* LogEntryIntent.swift */,
 				A10000024A /* AppShortcuts.swift */,
+				A1000003CA /* LogEntryForChosenQuantityIntent.swift */,
+				A1000003EA /* QuantityTypeEntity.swift */,
 			);
 			path = AppIntents;
 			sourceTree = "<group>";
@@ -356,6 +362,8 @@
 				A10000021A /* LogEntryIntent.swift in Sources */,
 				A10000023A /* AppShortcuts.swift in Sources */,
 				A10000025B /* KeyboardShortcutsHelpView.swift in Sources */,
+				A1000003BA /* LogEntryForChosenQuantityIntent.swift in Sources */,
+				A1000003DA /* QuantityTypeEntity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
