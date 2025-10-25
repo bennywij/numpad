@@ -63,20 +63,47 @@ The widget crashed due to CloudKit handler conflicts:
 ## Session Progress (Oct 24 Evening)
 
 ### COMPLETED ✅
+
+**Bugfixes & UX Improvements:**
 1. **FIX: iPad Layout Rendering Bug**
    - Removed GeometryReader complexity causing render issues
    - Simplified to use `horizontalSizeClass` environment variable
    - iPad now uses consistent 2-column layout (regular size class)
    - iPhone uses 1-column layout (compact size class)
    - Fixes Hidden section overlap rendering bug
-   - File: `Numpad/Views/ContentView.swift:613-660`
+   - Reduced spacing from 16 to 8 for more compact iPad layout
+   - Added SwiftUI #Preview macro for live testing
+   - Commit: `052fa11`
 
 2. **FIX: Divide by Zero Alert in Compound Quantities**
    - Issue: Error displayed when entering numerator before denominator (default 0)
    - Solution: Track `value2HasBeenEdited` state
    - Error only shows after denominator field is explicitly edited or loses focus
-   - File: `Numpad/Views/Components/ValueInputView.swift:93-251`
-   - Build verified: ✅ SUCCESS
+   - Commit: `92ddbdc`
+
+**Core Features:**
+3. **Improve Default Seeding Logic**
+   - Added `hasSeededDefaultQuantities` @AppStorage flag
+   - Seeding now happens only once on first app launch
+   - Deleting all quantities won't trigger re-seeding (respects user intent)
+   - Commit: `2930056`
+
+4. **Improve Widget Display Sorting**
+   - Changed widget default sort from `sortOrder` to `lastUsedAt`
+   - Widget now shows most recently used quantities first
+   - Better for quick reference in widget (most recent is most useful)
+   - Commit: `2930056`
+
+5. **Add Delete Quantity with Confirmation & Hide Context Menu**
+   - Tap-and-hold context menu with Hide/Unhide toggle (shows current state)
+   - Delete button at bottom of EditQuantityTypeView (harder to accidentally hit)
+   - Confirmation dialog with comprehensive warning:
+     - Permanent deletion notice
+     - iCloud sync notice
+     - Tip to export data before deletion
+   - Cascades deletion to all related entries via SwiftData relationships
+   - Tested: ✅ Working
+   - Commit: `c3bc1f9`
 
 ---
 
@@ -84,40 +111,23 @@ The widget crashed due to CloudKit handler conflicts:
 
 ### Proceed With
 
-1. **Implement Second App Intent Properly**
+1. **Make sortOrder Actually Work Persistently**
+   - Ensure drag-to-reorder on iPhone updates sortOrder correctly
+   - Verify sortOrder is saved to database properly
+   - Test that reorder persists after app restart
+   - Ensure iPad multi-column layout respects sortOrder (not affected by our 2-column simplification)
+
+2. **Implement Second App Intent Properly**
    - Add AddToQuantityIntent to build phase
    - Register in AppShortcuts with correct syntax
    - Test shortcuts appear in Shortcuts app
 
-2. **Improve Default Seeding Logic**
-   - Check if default quantities have been seeded already
-   - Don't keep reseeding on app launch
-   - Add a flag to QuantityType or use a UserDefaults key to track seed status
-   - Only seed once per fresh app install
-
-3. **Improve Widget Display**
-   - Change default widget display sorting from `sortOrder` to `lastUpdated`
-   - Show most recently updated quantities first (better for quick reference)
-   - Allow user to customize widget sort preference
-
-4. **Add Delete Quantity Button with Confirmation**
-   - Add delete button to quantity edit view
-   - Show confirmation dialog: "Are you sure? This will permanently delete [Quantity] and all its entries. This action cannot be undone and will also remove data from iCloud."
-   - Only proceed with deletion if user confirms
-   - Ensure deletion cascades properly to all related entries
-
-5. **Make sortOrder Actually Work Persistently**
-   - Ensure drag-to-reorder on iPhone updates sortOrder correctly
-   - Verify sortOrder is saved to database properly
-   - Test that reorder persists after app restart
-   - Ensure iPad multi-column layout respects sortOrder
-
-6. **Enhance Widget (When Ready)**
+3. **Enhance Widget (When Ready)**
    - Implement cross-process data sync
    - Display actual quantity data
    - Keep widget and app data layers separate
 
-7. **Review & Polish**
+4. **Review & Polish**
    - Run full test suite
    - Verify all shortcuts work
    - Clean up debug logging if added
