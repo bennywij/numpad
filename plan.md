@@ -62,17 +62,27 @@ The widget crashed due to CloudKit handler conflicts:
 
 ## Next Steps
 
-1. **Implement Second App Intent Properly**
+### FIRST THING TOMORROW
+1. **FIX: iPad Layout Rendering Bug (URGENT)**
+   - Issue: Adaptive column layout for iPad has rendering problems
+   - Cause: Changes made to support adaptive grid caused Hidden section overlap
+   - File: `Numpad/Views/ContentView.swift`
+   - Note: This was partially addressed in commit `1c7520d` but may need further refinement
+   - Priority: Fix BEFORE implementing other features
+
+### Then Proceed With
+
+2. **Implement Second App Intent Properly**
    - Add AddToQuantityIntent to build phase
    - Register in AppShortcuts with correct syntax
    - Test shortcuts appear in Shortcuts app
 
-2. **Enhance Widget (When Ready)**
+3. **Enhance Widget (When Ready)**
    - Implement cross-process data sync
    - Display actual quantity data
    - Keep widget and app data layers separate
 
-3. **Review & Polish**
+4. **Review & Polish**
    - Run full test suite
    - Verify all shortcuts work
    - Clean up debug logging if added
