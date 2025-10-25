@@ -86,9 +86,7 @@ class QuantityTypeViewModel: ObservableObject {
     }
 
     func seedDefaultQuantityTypes() {
-        let existing = fetchAllQuantityTypes()
-        guard existing.isEmpty else { return }
-
+        // Only seed if no quantities exist (called from ContentView with hasSeededDefaultQuantities flag)
         let defaults: [(String, ValueFormat, String)] = [
             ("Minutes Read", .duration, "book.fill"),
             ("Steps", .integer, "figure.walk"),

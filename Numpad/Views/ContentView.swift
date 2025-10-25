@@ -52,6 +52,9 @@ struct ContentView: View {
     // User preference: should widget tap open entry card or analytics?
     @AppStorage("widgetOpensEntryCard") private var widgetOpensEntryCard = true
 
+    // Track if we've seeded default quantities (don't reseed if user deletes all)
+    @AppStorage("hasSeededDefaultQuantities") private var hasSeededDefaultQuantities = false
+
     // MARK: - Computed Properties
 
     // Most recently used visible quantity (for Quick Add)
@@ -179,10 +182,12 @@ struct ContentView: View {
                 // Calculate initial totals
                 recalculateTotals()
 
-                // Seed default quantity types if none exist
-                if allQuantityTypes.isEmpty {
+                // Seed default quantity types only on first app launch
+                // (not if user deletes all quantities - that's an intentional choice)
+                if !hasSeededDefaultQuantities {
                     let vm = QuantityTypeViewModel(modelContext: modelContext)
                     vm.seedDefaultQuantityTypes()
+                    hasSeededDefaultQuantities = true
                 }
             }
             .navigationDestination(for: QuantityType.self) { quantityType in

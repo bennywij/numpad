@@ -130,9 +130,10 @@ struct Provider: AppIntentTimelineProvider {
             let context = ModelContext(container)
 
             // Fetch all non-hidden quantity types
+            // Sort by lastUsedAt (most recent first) for widget display
             let descriptor = FetchDescriptor<QuantityType>(
                 predicate: #Predicate { !$0.isHidden },
-                sortBy: [SortDescriptor(\.sortOrder)]
+                sortBy: [SortDescriptor(\.lastUsedAt, order: .reverse)]
             )
 
             let allQuantityTypes = try context.fetch(descriptor)
@@ -141,9 +142,9 @@ struct Provider: AppIntentTimelineProvider {
             // Filter based on user selection if provided
             let filteredQuantityTypes: [QuantityType]
             if selectedIDs.isEmpty {
-                // No selection = use default behavior (top N by sort order)
+                // No selection = use default behavior (top N by lastUsedAt)
                 filteredQuantityTypes = Array(allQuantityTypes.prefix(count))
-                print("➡️ Widget: No selection, using top \(count) by sort order")
+                print("➡️ Widget: No selection, using top \(count) by lastUsedAt")
             } else {
                 // User has selected specific types - show those (in selection order, up to count limit)
                 let selectedUUIDs = selectedIDs.compactMap { UUID(uuidString: $0) }
