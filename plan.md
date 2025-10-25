@@ -89,12 +89,35 @@ The widget crashed due to CloudKit handler conflicts:
    - Register in AppShortcuts with correct syntax
    - Test shortcuts appear in Shortcuts app
 
-2. **Enhance Widget (When Ready)**
+2. **Improve Default Seeding Logic**
+   - Check if default quantities have been seeded already
+   - Don't keep reseeding on app launch
+   - Add a flag to QuantityType or use a UserDefaults key to track seed status
+   - Only seed once per fresh app install
+
+3. **Improve Widget Display**
+   - Change default widget display sorting from `sortOrder` to `lastUpdated`
+   - Show most recently updated quantities first (better for quick reference)
+   - Allow user to customize widget sort preference
+
+4. **Add Delete Quantity Button with Confirmation**
+   - Add delete button to quantity edit view
+   - Show confirmation dialog: "Are you sure? This will permanently delete [Quantity] and all its entries. This action cannot be undone and will also remove data from iCloud."
+   - Only proceed with deletion if user confirms
+   - Ensure deletion cascades properly to all related entries
+
+5. **Make sortOrder Actually Work Persistently**
+   - Ensure drag-to-reorder on iPhone updates sortOrder correctly
+   - Verify sortOrder is saved to database properly
+   - Test that reorder persists after app restart
+   - Ensure iPad multi-column layout respects sortOrder
+
+6. **Enhance Widget (When Ready)**
    - Implement cross-process data sync
    - Display actual quantity data
    - Keep widget and app data layers separate
 
-3. **Review & Polish**
+7. **Review & Polish**
    - Run full test suite
    - Verify all shortcuts work
    - Clean up debug logging if added
