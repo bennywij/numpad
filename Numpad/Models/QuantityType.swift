@@ -111,12 +111,17 @@ final class QuantityType {
             } catch {
                 #if DEBUG
                 print("⚠️ Failed to decode CompoundConfig for quantity: \(name), error: \(error)")
+                print("⚠️ Preserved original JSON to prevent data loss. User may need to reconfigure compound input.")
                 #endif
+                // NOTE: We return nil but PRESERVE the original JSON string
+                // If decoding fails (e.g., after app update changing CompoundConfig structure),
+                // the JSON is kept so it's not lost forever
                 return nil
             }
         }
         set {
             guard let config = newValue else {
+                // Only clear JSON when explicitly setting nil with empty config
                 compoundConfigJSON = ""
                 return
             }
@@ -126,7 +131,8 @@ final class QuantityType {
                     #if DEBUG
                     print("⚠️ Failed to convert encoded data to string for quantity: \(name)")
                     #endif
-                    compoundConfigJSON = ""
+                    // DO NOT clear compoundConfigJSON - preserve existing value on error
+                    // This prevents silent data loss
                     return
                 }
                 compoundConfigJSON = json
@@ -134,7 +140,8 @@ final class QuantityType {
                 #if DEBUG
                 print("⚠️ Failed to encode CompoundConfig for quantity: \(name), error: \(error)")
                 #endif
-                compoundConfigJSON = ""
+                // DO NOT clear compoundConfigJSON - preserve existing value on error
+                // This prevents silent data loss
             }
         }
     }
