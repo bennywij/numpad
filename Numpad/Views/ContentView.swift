@@ -42,6 +42,10 @@ struct ContentView: View {
     @State private var navigationPath = NavigationPath()
     @State private var deepLinkQuantityID: UUID?
 
+    // Error handling for data operations
+    @State private var saveErrorMessage: String?
+    @State private var showingSaveError = false
+
     // Keyboard navigation state
     @State private var focusedQuantityID: UUID?
     @State private var showingKeyboardShortcuts = false
@@ -177,6 +181,17 @@ struct ContentView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text("Unable to export data. Please try again.")
+            }
+            .alert("Save Failed", isPresented: $showingSaveError) {
+                Button("OK", role: .cancel) {
+                    showingSaveError = false
+                }
+            } message: {
+                if let errorMessage = saveErrorMessage {
+                    Text(errorMessage)
+                } else {
+                    Text("Failed to save your changes. Please try again.")
+                }
             }
             .task {
                 // Initialize repository for efficient database queries
@@ -439,12 +454,24 @@ struct ContentView: View {
         totals = newTotals
     }
 
+    private func saveChanges(operation: String) {
+        do {
+            try modelContext.save()
+        } catch {
+            #if DEBUG
+            print("❌ Failed to save after \(operation): \(error)")
+            #endif
+            saveErrorMessage = "Failed to save \(operation). Please try again."
+            showingSaveError = true
+        }
+    }
+
     private func deleteQuantityTypes(at offsets: IndexSet) {
         for index in offsets {
             let quantityType = mainListQuantities[index]
             modelContext.delete(quantityType)
         }
-        try? modelContext.save()
+        saveChanges(operation: "deletion")
     }
 
     private func moveQuantityTypes(from source: IndexSet, to destination: Int) {
@@ -457,7 +484,7 @@ struct ContentView: View {
             type.sortOrder = index
         }
 
-        try? modelContext.save()
+        saveChanges(operation: "reordering")
     }
 
     private func exportData() {
