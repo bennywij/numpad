@@ -27,9 +27,6 @@ struct ContentView: View {
     // Query all quantity types (for seeding check)
     @Query private var allQuantityTypes: [QuantityType]
 
-    // Query ALL entries to trigger view updates when entries change
-    @Query private var allEntries: [NumpadEntry]
-
     // Repository for efficient database queries
     @State private var repository: QuantityRepository?
 
@@ -56,6 +53,12 @@ struct ContentView: View {
     @AppStorage("hasSeededDefaultQuantities") private var hasSeededDefaultQuantities = false
 
     // MARK: - Computed Properties
+
+    // Check if we have any entries to export
+    // We check if any total > 0 instead of querying all entries (avoids N+1 problem)
+    private var hasEntries: Bool {
+        !totals.isEmpty && totals.values.contains { $0 > 0 }
+    }
 
     // Most recently used visible quantity (for Quick Add)
     private var mostRecentQuantity: QuantityType? {
@@ -100,7 +103,7 @@ struct ContentView: View {
                         }
 
                         // Export button at bottom (subtle, rarely used)
-                        if !allEntries.isEmpty {
+                        if hasEntries {
                             exportButton
                                 .padding(.top, 40)
                         }
@@ -212,10 +215,6 @@ struct ContentView: View {
                     // Clear the deep link ID after handling
                     deepLinkQuantityID = nil
                 }
-            }
-            .onChange(of: allEntries.count) { _, _ in
-                // Recalculate totals when entries are added/removed
-                recalculateTotals()
             }
             .onChange(of: visibleQuantityTypes.count) { _, _ in
                 // Recalculate totals when quantity types are added/removed
@@ -462,6 +461,9 @@ struct ContentView: View {
     }
 
     private func exportData() {
+        // Gather all entries through quantity type relationships
+        let allEntries = allQuantityTypes.flatMap { $0.entries ?? [] }
+
         #if DEBUG
         print("📤 Exporting \(allEntries.count) entries...")
         #endif
@@ -489,18 +491,18 @@ struct ContentView: View {
     }
 
     private func resetAllData() {
+        // Count entries through relationships before deletion
+        let totalEntries = allQuantityTypes.reduce(0) { sum, qt in
+            sum + (qt.entries?.count ?? 0)
+        }
+
         #if DEBUG
         print("🔄 Starting data reset...")
-        print("   Total entries: \(allEntries.count)")
+        print("   Total entries: \(totalEntries)")
         print("   Total quantity types: \(allQuantityTypes.count)")
         #endif
 
-        // Delete all entries first (to maintain referential integrity)
-        for entry in allEntries {
-            modelContext.delete(entry)
-        }
-
-        // Delete all quantity types
+        // Delete all quantity types (entries will cascade delete via relationship)
         for quantityType in allQuantityTypes {
             modelContext.delete(quantityType)
         }
