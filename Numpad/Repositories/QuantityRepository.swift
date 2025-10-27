@@ -21,6 +21,12 @@ class QuantityRepository {
     /// Calculate total for a quantity type using database-level filtering
     /// - Parameter quantityType: The quantity type to calculate total for
     /// - Returns: Aggregated total based on quantity type's aggregation type and period
+    ///
+    /// ⚠️ IMPORTANT: This logic is DUPLICATED in NumpadWidget/NumpadWidget.swift:calculateTotal()
+    /// Due to process separation between app and widget, they cannot share code.
+    /// If you modify this function, you MUST update the widget implementation too!
+    /// Both versions must stay in sync to ensure app and widget show the same totals.
+    /// TODO(v1.1): Refactor to extract shared calculation logic to unified location
     func calculateTotal(for quantityType: QuantityType) -> Double {
         let quantityTypeID = quantityType.id
         let aggregationPeriod = quantityType.aggregationPeriod

@@ -70,6 +70,12 @@ struct Provider: AppIntentTimelineProvider {
     }
 
     /// Calculate total using database-level filtering (same logic as QuantityRepository)
+    ///
+    /// ⚠️ IMPORTANT: This logic is DUPLICATED in Numpad/Repositories/QuantityRepository.swift:calculateTotal()
+    /// Due to process separation between app and widget, they cannot share code.
+    /// If you modify this function, you MUST update the repository implementation too!
+    /// Both versions must stay in sync to ensure app and widget show the same totals.
+    /// TODO(v1.1): Refactor to extract shared calculation logic to unified location
     private func calculateTotal(for quantityType: QuantityType, context: ModelContext) -> Double {
         let quantityTypeID = quantityType.id
         let aggregationPeriod = quantityType.aggregationPeriod
