@@ -67,7 +67,9 @@ class AnalyticsViewModel: ObservableObject {
         // Use repository for efficient database-level querying
         guard let repo = repository else { return [] }
 
-        let entries = repo.fetchEntries(for: quantityType)
+        // Limit to most recent 500 entries to prevent memory issues with large datasets
+        // Users can scroll back further if needed, but grouping 1000+ entries causes lag
+        let entries = repo.fetchEntries(for: quantityType, limit: 500)
 
         if period == .all {
             let values = entries.map { $0.value }
