@@ -462,28 +462,38 @@ struct ContentView: View {
     }
 
     private func exportData() {
+        #if DEBUG
         print("📤 Exporting \(allEntries.count) entries...")
+        #endif
 
         guard let csvContent = CSVExporter.exportAllData(entries: allEntries) else {
+            #if DEBUG
             print("⚠️ No data to export")
+            #endif
             showingExportError = true
             return
         }
 
         guard let fileURL = CSVExporter.createTemporaryFile(csvContent: csvContent) else {
+            #if DEBUG
             print("❌ Failed to create export file")
+            #endif
             showingExportError = true
             return
         }
 
+        #if DEBUG
         print("✅ Export file created: \(fileURL.lastPathComponent)")
+        #endif
         exportFileURL = fileURL
     }
 
     private func resetAllData() {
+        #if DEBUG
         print("🔄 Starting data reset...")
         print("   Total entries: \(allEntries.count)")
         print("   Total quantity types: \(allQuantityTypes.count)")
+        #endif
 
         // Delete all entries first (to maintain referential integrity)
         for entry in allEntries {
@@ -498,7 +508,9 @@ struct ContentView: View {
         // Save changes - this will sync to iCloud and remove the data there too
         do {
             try modelContext.save()
+            #if DEBUG
             print("✅ All data deleted successfully")
+            #endif
 
             // Re-seed default quantity types after a brief delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -506,24 +518,32 @@ struct ContentView: View {
                 vm.seedDefaultQuantityTypes()
             }
         } catch {
+            #if DEBUG
             print("❌ Failed to delete data: \(error)")
+            #endif
         }
     }
 
     /// Handle deep links from widgets to navigate to specific quantity analytics
     private func handleDeepLink(url: URL) {
+        #if DEBUG
         print("🔗 Deep link received: \(url)")
+        #endif
 
         // Expected format: numpad://quantity/{uuid}
         guard url.scheme == "numpad",
               url.host == "quantity",
               let uuidString = url.pathComponents.dropFirst().first,
               let quantityID = UUID(uuidString: uuidString) else {
+            #if DEBUG
             print("⚠️ Invalid deep link format: \(url)")
+            #endif
             return
         }
 
+        #if DEBUG
         print("✅ Parsed quantity ID: \(quantityID)")
+        #endif
         deepLinkQuantityID = quantityID
     }
 

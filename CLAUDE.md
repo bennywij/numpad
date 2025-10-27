@@ -1,0 +1,1 @@
+- if i ask for a gemini review or anything to do with gemini, what I likely want is please use the CLI `gemini -p` and ask that LLM to do something for the main claude agent (you) in a subtask.

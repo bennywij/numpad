@@ -42,12 +42,16 @@ struct NumpadApp: App {
             return try ModelContainer(for: schema, configurations: [cloudKitConfig])
         } catch {
             // Fallback to local storage
+            #if DEBUG
             print("⚠️ CloudKit unavailable, using local storage: \(error)")
+            #endif
             do {
                 return try ModelContainer(for: schema, configurations: [localConfig])
             } catch {
                 // Final fallback to in-memory storage (data won't persist, but app won't crash)
+                #if DEBUG
                 print("⚠️ Local storage failed, using in-memory storage: \(error)")
+                #endif
                 do {
                     return try ModelContainer(for: schema, configurations: [inMemoryConfig])
                 } catch {

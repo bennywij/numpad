@@ -22,7 +22,9 @@ struct Provider: AppIntentTimelineProvider {
                 )
             )
         } catch {
+            #if DEBUG
             print("❌ Widget: Failed to create ModelContainer: \(error)")
+            #endif
             return nil
         }
     }()
@@ -112,21 +114,29 @@ struct Provider: AppIntentTimelineProvider {
             let values = entries.map { $0.value }
             return quantityType.aggregationType.aggregate(values)
         } catch {
+            #if DEBUG
             print("❌ Widget.calculateTotal: Failed to fetch entries for \(quantityType.name) - \(error.localizedDescription)")
+            #endif
             return 0
         }
     }
 
     private func fetchQuantityTypes(count: Int, selectedIDs: [String]) -> [QuantityTypeData] {
+        #if DEBUG
         print("➡️ Widget: Starting fetchQuantityTypes (count: \(count), selectedIDs: \(selectedIDs.count))")
+        #endif
         // Use shared container for better performance
         guard let container = Self.sharedContainer else {
+            #if DEBUG
             print("❌ Widget: ModelContainer not available")
+            #endif
             return []
         }
 
         do {
+            #if DEBUG
             print("➡️ Widget: ModelContainer available, fetching...")
+            #endif
             let context = ModelContext(container)
 
             // Fetch all non-hidden quantity types
@@ -137,27 +147,35 @@ struct Provider: AppIntentTimelineProvider {
             )
 
             let allQuantityTypes = try context.fetch(descriptor)
+            #if DEBUG
             print("➡️ Widget: Fetched \(allQuantityTypes.count) quantity types")
+            #endif
 
             // Filter based on user selection if provided
             let filteredQuantityTypes: [QuantityType]
             if selectedIDs.isEmpty {
                 // No selection = use default behavior (top N by lastUsedAt)
                 filteredQuantityTypes = Array(allQuantityTypes.prefix(count))
+                #if DEBUG
                 print("➡️ Widget: No selection, using top \(count) by lastUsedAt")
+                #endif
             } else {
                 // User has selected specific types - show those (in selection order, up to count limit)
                 let selectedUUIDs = selectedIDs.compactMap { UUID(uuidString: $0) }
                 filteredQuantityTypes = selectedUUIDs.compactMap { selectedID in
                     allQuantityTypes.first { $0.id == selectedID }
                 }.prefix(count).map { $0 }
+                #if DEBUG
                 print("➡️ Widget: Using \(filteredQuantityTypes.count) user-selected types")
+                #endif
             }
 
             // Use efficient database-level queries (no in-memory filtering!)
             return filteredQuantityTypes.map { qt in
                 let total = self.calculateTotal(for: qt, context: context)
+                #if DEBUG
                 print("  - Processing \(qt.name): total = \(total) (period: \(qt.aggregationPeriod.displayName))")
+                #endif
 
                 return QuantityTypeData(
                     id: qt.id,
@@ -170,7 +188,9 @@ struct Provider: AppIntentTimelineProvider {
                 )
             }
         } catch {
+            #if DEBUG
             print("❌ Widget: Error fetching quantity types: \(error)")
+            #endif
             return []
         }
     }

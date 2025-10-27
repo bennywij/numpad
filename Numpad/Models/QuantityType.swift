@@ -101,13 +101,17 @@ final class QuantityType {
         get {
             guard isCompound, !compoundConfigJSON.isEmpty else { return nil }
             guard let data = compoundConfigJSON.data(using: .utf8) else {
+                #if DEBUG
                 print("⚠️ Failed to convert compoundConfigJSON to Data for quantity: \(name)")
+                #endif
                 return nil
             }
             do {
                 return try JSONDecoder().decode(CompoundConfig.self, from: data)
             } catch {
+                #if DEBUG
                 print("⚠️ Failed to decode CompoundConfig for quantity: \(name), error: \(error)")
+                #endif
                 return nil
             }
         }
@@ -119,13 +123,17 @@ final class QuantityType {
             do {
                 let data = try JSONEncoder().encode(config)
                 guard let json = String(data: data, encoding: .utf8) else {
+                    #if DEBUG
                     print("⚠️ Failed to convert encoded data to string for quantity: \(name)")
+                    #endif
                     compoundConfigJSON = ""
                     return
                 }
                 compoundConfigJSON = json
             } catch {
+                #if DEBUG
                 print("⚠️ Failed to encode CompoundConfig for quantity: \(name), error: \(error)")
+                #endif
                 compoundConfigJSON = ""
             }
         }

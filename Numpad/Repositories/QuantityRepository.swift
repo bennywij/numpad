@@ -66,7 +66,9 @@ class QuantityRepository {
             let values = entries.map { $0.value }
             return quantityType.aggregationType.aggregate(values)
         } catch {
+            #if DEBUG
             print("❌ QuantityRepository.calculateTotal: Failed to fetch entries for \(quantityType.name) - \(error.localizedDescription)")
+            #endif
             return 0
         }
     }
@@ -91,7 +93,9 @@ class QuantityRepository {
         do {
             return try modelContext.fetch(descriptor)
         } catch {
+            #if DEBUG
             print("❌ QuantityRepository.fetchEntries: Failed to fetch entries for \(quantityType.name) - \(error.localizedDescription)")
+            #endif
             return []
         }
     }
