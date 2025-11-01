@@ -235,6 +235,18 @@ struct ContentView: View {
                 // Recalculate totals when quantity types are added/removed
                 recalculateTotals()
             }
+            .onChange(of: addEntryFor) { _, newValue in
+                // Recalculate totals when entry sheet closes (after entry is saved)
+                if newValue == nil {
+                    recalculateTotals()
+                }
+            }
+            .onChange(of: editQuantityType) { _, newValue in
+                // Recalculate totals when edit sheet closes (after edits are saved)
+                if newValue == nil {
+                    recalculateTotals()
+                }
+            }
             .modifier(KeyboardShortcutsFocusedValues(
                 newQuantityAction: handleNewQuantityShortcut,
                 addEntryAction: handleAddEntryShortcut,

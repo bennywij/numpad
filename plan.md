@@ -450,10 +450,11 @@ Comprehensive code review covering security, performance, architecture, and bug 
 - ✅ Code cleanup (debug print wrapping with #if DEBUG)
 - ✅ Security review (no vulnerabilities found)
 - ✅ Comprehensive architecture audit
+- ✅ Create Privacy Policy (with Newtonian Apps entity, newtonianmechanics@mac.com contact)
 
 **In Progress:**
-- 🔄 Fix critical bugs identified in audit
-- 🔄 Prepare privacy policy and legal docs
+- 🔄 Fix aggregate update lag bug (new regression detected)
+- 🔄 Publish privacy policy to public URL
 - 🔄 Update production entitlements
 
 **Pending:**
